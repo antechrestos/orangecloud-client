@@ -1,0 +1,7 @@
+{
+  "id": "folder-id",
+  "parentId": "parent-id",
+  "name": "folder-name",
+  "files": [],
+  "subFolders": []
+}

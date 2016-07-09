@@ -1,0 +1,26 @@
+{
+  "id": "folder-id",
+  "parentId": "root-id",
+  "name": "folder-name",
+  "files": [
+    {
+      "id": "file-id",
+      "name": "file-name",
+      "size": 0,
+      "creationDate": "2016-06-09T08:15:13.810Z",
+      "lastUpdateDate": "2016-06-09T08:15:13.810Z",
+      "type": "string",
+      "downloadUrl": "string",
+      "previewUrl": "string",
+      "thumbUrl": "string",
+      "metaData": {}
+    }
+  ],
+  "subFolders": [
+    {
+      "id": "subfolder-id",
+      "name": "sub-folder-name",
+      "parentId": "folder-id"
+    }
+  ]
+}

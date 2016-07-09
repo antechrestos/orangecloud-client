@@ -21,7 +21,6 @@ def purge_sub_dir(path):
     shutil.rmtree(os.path.join(os.path.dirname(__file__), path))
 
 
-
 setup(name=package_name,
       version=__version__,
       zip_safe=False,
