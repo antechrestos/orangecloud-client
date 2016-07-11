@@ -1,3 +1,7 @@
+from mimetypes import guess_type
+from os.path import basename
+
+from oranglecloud_client import URL_UPLOAD, BASE_URI
 from oranglecloud_client.abstract_domain import AbstractDomain
 
 
@@ -24,3 +28,20 @@ class Files(AbstractDomain):
         response = self._post('/files/%s' % file_id,
                               dict(name=new_name, parentFolderId=destination_folder_id, clone=True))
         return AbstractDomain._read_response(response)
+
+    def upload(self, file_path, folder_id=None):
+        mime_type, _ = guess_type(file_path)
+        file_name = basename(file_path)
+        params = dict(name=file_name)
+        if folder_id is not None:
+            params['folder'] = folder_id
+        with open(file_path, 'rb') as f:
+            uri = '/files/content'
+            response = self.client.post('%s%s%s' % (URL_UPLOAD, BASE_URI, uri),
+                                        data=None,
+                                        json=None,
+                                        params=params,
+                                        files=dict(file=(file_name, f,
+                                                         'application/octet-stream' if mime_type is None
+                                                         else mime_type)))
+            return self._check_response(response, uri)

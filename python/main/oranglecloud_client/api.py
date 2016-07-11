@@ -4,7 +4,7 @@ from os import environ
 
 from oauth2_client.credentials_manager import CredentialManager, ServiceInformation
 
-from oranglecloud_client import URL_SERVICE
+from oranglecloud_client import URL_API
 from oranglecloud_client.folders import Folders
 from oranglecloud_client.freespace import Freespace
 from oranglecloud_client.files import Files
@@ -38,8 +38,8 @@ class ApiManager(CredentialManager):
         # some certificates such as netatmo are invalid
         super(ApiManager, self).__init__(
             ServiceInformation(
-                '%s/oauth/v2/authorize' % URL_SERVICE,
-                '%s/oauth/v2/token' % URL_SERVICE,
+                '%s/oauth/v2/authorize' % URL_API,
+                '%s/oauth/v2/token' % URL_API,
                 client_id=client_id,
                 client_secret=client_secret,
                 scopes=ApiManager.SCOPES,

@@ -1,7 +1,7 @@
 from json import dumps, load
 from os import path
 
-from oranglecloud_client import URL_SERVICE
+from oranglecloud_client import URL_API, BASE_URI
 from .fake_requests import MockResponse
 
 
@@ -23,7 +23,7 @@ class MockClient(object):
 
     @staticmethod
     def _generate_url(uri_path, params=None):
-        return '%s%s' % (URL_SERVICE, MockClient._append_params(uri_path, params))
+        return '%s%s%s' % (URL_API, BASE_URI, MockClient._append_params(uri_path, params))
 
     def mock_delete(self, uri_path, status_code):
         response = MockResponse(MockClient._generate_url(uri_path), status_code, None)

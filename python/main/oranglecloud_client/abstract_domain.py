@@ -1,6 +1,6 @@
 import logging
 
-from oranglecloud_client import URL_SERVICE
+from oranglecloud_client import URL_API, URL_UPLOAD, BASE_URI
 from oranglecloud_client.error_handling import raise_error, raise_response_error
 
 
@@ -23,14 +23,18 @@ class AbstractDomain(object):
     def _debug(self, msg, *args):
         self._debug(msg, *args)
 
+    @staticmethod
+    def _build_uri(uri):
+        return '%s%s%s' % (URL_API, BASE_URI, uri)
+
     def _get(self, uri, params=None):
-        return self._call(self.client.get, '%s%s' % (URL_SERVICE, uri), params=params)
+        return self._call(self.client.get, AbstractDomain._build_uri(uri), params=params)
 
     def _post(self, uri, json=None):
-        return self._call(self.client.post, '%s%s' % (URL_SERVICE, uri), json=json)
+        return self._call(self.client.post, AbstractDomain._build_uri(uri), json=json)
 
     def _delete(self, uri):
-        return self._call(self.client.delete, '%s%s' % (URL_SERVICE, uri))
+        return self._call(self.client.delete, AbstractDomain._build_uri(uri))
 
     def _call(self, method, path, **kwargs):
         response = method(path, **kwargs)

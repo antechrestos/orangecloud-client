@@ -1,6 +1,7 @@
 import httplib
 import unittest
-
+from oranglecloud_client import URL_UPLOAD, BASE_URI
+from orangecloud_client_test.fake_requests import MockResponse
 from orangecloud_client_test.mock_api import MockClient
 from oranglecloud_client.files import Files
 
@@ -50,3 +51,9 @@ class FilesTest(unittest.TestCase):
         self.assertEqual('file-id', response_file.id)
         self.assertEqual('new-name', response_file.name)
         self.assertEqual('parent-id', response_file.parentId)
+
+    def test_upload(self):
+        response = MockResponse('%s%s' % (URL_UPLOAD, BASE_URI), status_code, response_payload)
+
+
+        return , MockClient._append_params(uri_path, params))
