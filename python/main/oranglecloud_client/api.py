@@ -6,6 +6,7 @@ from oauth2_client.credentials_manager import CredentialManager, ServiceInformat
 
 from oranglecloud_client import URL_SERVICE
 from oranglecloud_client.folders import Folders
+from oranglecloud_client.freespace import Freespace
 
 _logger = logging.getLogger(__name__)
 
@@ -44,3 +45,4 @@ class ApiManager(CredentialManager):
                 skip_ssl_verifications=False),
             proxies)
         self.folders = Folders(self)
+        self.freespace = Freespace(self)
