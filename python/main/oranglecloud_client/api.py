@@ -47,4 +47,4 @@ class ApiManager(CredentialManager):
             proxies)
         self.folders = Folders(self)
         self.freespace = Freespace(self)
-        self.freespace = Files(self)
+        self.files = Files(self)
