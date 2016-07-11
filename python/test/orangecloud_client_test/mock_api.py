@@ -1,4 +1,4 @@
-from json import dumps
+from json import dumps, load
 from os import path
 
 from oranglecloud_client import URL_SERVICE
@@ -39,15 +39,15 @@ class MockClient(object):
         response_payload = None
         if request_payload_path is not None:
             with open(path.join(path.dirname(__file__), '..', 'fixtures', *request_payload_path), 'r') as f:
-                request_payload = f.read()
+                request_payload = load(f)
         if response_payload_path is not None:
             with open(path.join(path.dirname(__file__), '..', 'fixtures', *response_payload_path), 'r') as f:
                 response_payload = f.read()
         response = MockResponse(MockClient._generate_url(uri_path), status_code, response_payload)
 
-        def check_data(data):
-            if request_payload is None:
-                self.assert_equal(request_payload, data)
+        def check_data(json):
+            if request_payload is not None:
+                self.assert_equal(request_payload, json)
 
         response.check_data = check_data
         self._post[response.url] = response
@@ -62,5 +62,5 @@ class MockClient(object):
         if json is not None:
             data = dumps(json)
         response = self._post[url]
-        response.check_data(data)
+        response.check_data(json)
         return response
