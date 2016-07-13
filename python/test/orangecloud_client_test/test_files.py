@@ -53,7 +53,4 @@ class FilesTest(unittest.TestCase):
         self.assertEqual('parent-id', response_file.parentId)
 
     def test_upload(self):
-        response = MockResponse('%s%s' % (URL_UPLOAD, BASE_URI), status_code, response_payload)
-
-
-        return , MockClient._append_params(uri_path, params))
+        pass

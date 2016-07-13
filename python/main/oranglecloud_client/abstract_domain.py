@@ -21,7 +21,7 @@ class AbstractDomain(object):
         raise_response_error(response, self.domain_name, msg, *args)
 
     def _debug(self, msg, *args):
-        self._debug(msg, *args)
+        self._logger.debug(msg, *args)
 
     @staticmethod
     def _build_uri(uri):

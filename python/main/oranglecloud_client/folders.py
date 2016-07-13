@@ -6,6 +6,7 @@ class Folders(AbstractDomain):
         super(Folders, self).__init__(client, 'folders')
 
     def get(self, folder_id=None, filtered_params=None):
+        self._debug('get - %s', folder_id if folder_id is not None else 'root')
         if folder_id is None:
             response = self._get('/folders', filtered_params)
         else:
@@ -13,9 +14,11 @@ class Folders(AbstractDomain):
         return AbstractDomain._read_response(response)
 
     def delete(self, folder_id):
+        self._debug('delete - %s')
         self._delete('/folders/%s' % folder_id)
 
     def create(self, name, parent_id=None):
+        self._debug('create - %s => %s', name, parent_id if parent_id is not None else 'root')
         data = dict(name=name)
         if parent_id is not None:
             data['parentFolderId'] = parent_id

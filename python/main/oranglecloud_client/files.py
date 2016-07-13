@@ -10,28 +10,36 @@ class Files(AbstractDomain):
         super(Files, self).__init__(client, 'files')
 
     def get(self, file_id):
+        self._debug('get - %s', file_id)
         response = self._get('/files/%s' % file_id)
         return AbstractDomain._read_response(response)
 
     def delete(self, file_id):
+        self._debug('delete - %s', file_id)
         self._delete('/files/%s' % file_id)
 
     def move(self, file_id, destination_folder_id):
+        self._debug('move - %s => %s', file_id, destination_folder_id)
         response = self._post('/files/%s' % file_id, dict(parentFolderId=destination_folder_id, clone=False))
         return AbstractDomain._read_response(response)
 
     def rename(self, file_id, new_name):
+        self._debug('rename - %s => %s', file_id, new_name)
         response = self._post('/files/%s' % file_id, dict(name=new_name, clone=False))
         return AbstractDomain._read_response(response)
 
     def copy(self, file_id, new_name, destination_folder_id):
+        self._debug('copy - %s => %s/%s', file_id, destination_folder_id, new_name)
         response = self._post('/files/%s' % file_id,
                               dict(name=new_name, parentFolderId=destination_folder_id, clone=True))
         return AbstractDomain._read_response(response)
 
     def upload(self, file_path, folder_id=None):
         mime_type, _ = guess_type(file_path)
+        mime_type = 'application/octet-stream' if mime_type is None else mime_type
         file_name = basename(file_path)
+        self._debug('upload - %s(%s) => %s', file_name, mime_type,
+                    folder_id if folder_id is not None else 'root')
         params = dict(name=file_name)
         if folder_id is not None:
             params['folder'] = folder_id
@@ -41,7 +49,5 @@ class Files(AbstractDomain):
                                         data=None,
                                         json=None,
                                         params=params,
-                                        files=dict(file=(file_name, f,
-                                                         'application/octet-stream' if mime_type is None
-                                                         else mime_type)))
+                                        files=dict(file=(file_name, f, mime_type)))
             return self._check_response(response, uri)
