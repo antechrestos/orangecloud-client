@@ -12,6 +12,7 @@ class Files(AbstractDomain):
     def get(self, file_id):
         self._debug('get - %s', file_id)
         response = self._get('/files/%s' % file_id)
+        self._debug('get - %s - %s', file_id, response.text)
         return AbstractDomain._read_response(response)
 
     def delete(self, file_id):
@@ -21,26 +22,29 @@ class Files(AbstractDomain):
     def move(self, file_id, destination_folder_id):
         self._debug('move - %s => %s', file_id, destination_folder_id)
         response = self._post('/files/%s' % file_id, dict(parentFolderId=destination_folder_id, clone=False))
+        self._debug('move - %s - %s', file_id, response.text)
         return AbstractDomain._read_response(response)
 
     def rename(self, file_id, new_name):
         self._debug('rename - %s => %s', file_id, new_name)
         response = self._post('/files/%s' % file_id, dict(name=new_name, clone=False))
+        self._debug('rename - %s - %s', file_id, response.text)
         return AbstractDomain._read_response(response)
 
     def copy(self, file_id, new_name, destination_folder_id):
         self._debug('copy - %s => %s/%s', file_id, destination_folder_id, new_name)
         response = self._post('/files/%s' % file_id,
                               dict(name=new_name, parentFolderId=destination_folder_id, clone=True))
+        self._debug('copy - %s - %s', file_id, response.text)
         return AbstractDomain._read_response(response)
 
-    def upload(self, file_path, folder_id=None):
+    def upload(self, file_path, description='', folder_id=None):
         mime_type, _ = guess_type(file_path)
         mime_type = 'application/octet-stream' if mime_type is None else mime_type
         file_name = basename(file_path)
         self._debug('upload - %s(%s) => %s', file_name, mime_type,
                     folder_id if folder_id is not None else 'root')
-        params = dict(name=file_name)
+        params = dict(name=file_name, description=description)
         if folder_id is not None:
             params['folder'] = folder_id
         with open(file_path, 'rb') as f:
@@ -50,4 +54,5 @@ class Files(AbstractDomain):
                                         json=None,
                                         params=params,
                                         files=dict(file=(file_name, f, mime_type)))
+            self._debug('upload - %s - %s', file_path, response.text)
             return self._check_response(response, uri)

@@ -1,11 +1,27 @@
 import logging
 
-from oranglecloud_client import URL_API, URL_UPLOAD, BASE_URI
+from oranglecloud_client import URL_API, BASE_URI
 from oranglecloud_client.error_handling import raise_error, raise_response_error
 
 
-class JsonObject(object):
-    pass
+class JsonObject(dict):
+    def json(self):
+        return JsonObject._to_json(self)
+
+    @staticmethod
+    def _to_json(instance):
+        if type(instance) == JsonObject:
+            result = dict()
+            for k, v in instance.__dict__.items():
+                if '__call__' not in dir(v):
+                    result[k] = JsonObject._to_json(v)
+            return result
+        elif type(instance) == dict:
+            return {k: JsonObject._to_json(v) for k, v in instance.items()}
+        elif type(instance) == list:
+            return [JsonObject._to_json(elem) for elem in instance]
+        else:
+            return instance
 
 
 class AbstractDomain(object):

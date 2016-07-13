@@ -8,4 +8,5 @@ class Freespace(AbstractDomain):
     def get(self):
         self._debug('get')
         response = self._get('/freespace')
+        self._debug('freespace - %s', response.text)
         return AbstractDomain._read_response(response)
