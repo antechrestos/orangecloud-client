@@ -1,5 +1,7 @@
+import os
 from mimetypes import guess_type
-from os.path import basename
+import json
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from oranglecloud_client import URL_UPLOAD, BASE_URI
 from oranglecloud_client.abstract_domain import AbstractDomain
@@ -21,38 +23,48 @@ class Files(AbstractDomain):
 
     def move(self, file_id, destination_folder_id):
         self._debug('move - %s => %s', file_id, destination_folder_id)
-        response = self._post('/files/%s' % file_id, dict(parentFolderId=destination_folder_id, clone=False))
+        response = self._post('/files/%s' % file_id, dict(parentFolderId=destination_folder_id))
         self._debug('move - %s - %s', file_id, response.text)
         return AbstractDomain._read_response(response)
 
     def rename(self, file_id, new_name):
         self._debug('rename - %s => %s', file_id, new_name)
-        response = self._post('/files/%s' % file_id, dict(name=new_name, clone=False))
+        response = self._post('/files/%s' % file_id, dict(name=new_name))
         self._debug('rename - %s - %s', file_id, response.text)
         return AbstractDomain._read_response(response)
 
-    def copy(self, file_id, new_name, destination_folder_id):
-        self._debug('copy - %s => %s/%s', file_id, destination_folder_id, new_name)
+    def copy(self, file_id, destination_folder_id):
+        self._debug('copy - %s => %s', file_id, destination_folder_id)
         response = self._post('/files/%s' % file_id,
-                              dict(name=new_name, parentFolderId=destination_folder_id, clone=True))
+                              dict(parentFolderId=destination_folder_id, clone=True))
         self._debug('copy - %s - %s', file_id, response.text)
         return AbstractDomain._read_response(response)
 
-    def upload(self, file_path, description='', folder_id=None):
+    def download(self, download_url, destination_path):
+        with open(destination_path, 'wb') as f:
+            self._debug('download - %s', os.path.basename(destination_path))
+            response = self._call(self.client.get, download_url, stream=True)
+            for chunk in response:
+                f.write(chunk)
+
+    def upload(self, file_path, folder_id=None):
         mime_type, _ = guess_type(file_path)
         mime_type = 'application/octet-stream' if mime_type is None else mime_type
-        file_name = basename(file_path)
+        file_name = os.path.basename(file_path)
         self._debug('upload - %s(%s) => %s', file_name, mime_type,
                     folder_id if folder_id is not None else 'root')
-        params = dict(name=file_name, description=description)
+        file_stats = os.stat(file_path)
+        description = dict(name=file_name, size=str(file_stats.st_size))
         if folder_id is not None:
-            params['folder'] = folder_id
+            description['folder'] = folder_id
         with open(file_path, 'rb') as f:
             uri = '/files/content'
-            response = self.client.post('%s%s%s' % (URL_UPLOAD, BASE_URI, uri),
-                                        data=None,
-                                        json=None,
-                                        params=params,
-                                        files=dict(file=(file_name, f, mime_type)))
-            self._debug('upload - %s - %s', file_path, response.text)
+            m = MultipartEncoder(
+                fields=dict(description=json.dumps(dict(description)),
+                            file=(file_name, f, mime_type))
+            )
+            response = self._post('%s%s%s' % (URL_UPLOAD, BASE_URI, uri),
+                                  data=m,
+                                  headers={'Content-Type': m.content_type})
+            self._debug('upload - %s - %s', file_name, response.text)
             return self._check_response(response, uri)

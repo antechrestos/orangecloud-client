@@ -16,7 +16,7 @@ class Folders(AbstractDomain):
         return AbstractDomain._read_response(response)
 
     def delete(self, folder_id):
-        self._debug('delete - %s')
+        self._debug('delete - %s', folder_id)
         self._delete('/folders/%s' % folder_id)
 
     def create(self, name, parent_id=None):
@@ -26,4 +26,23 @@ class Folders(AbstractDomain):
             data['parentFolderId'] = parent_id
         response = self._post('/folders', data)
         self._debug('create - %s - %s', name, response.text)
+        return AbstractDomain._read_response(response)
+
+    def move(self, folder_id, destination_folder_id):
+        self._debug('move - %s => %s', folder_id, destination_folder_id)
+        response = self._post('/folders/%s' % folder_id, dict(parentFolderId=destination_folder_id))
+        self._debug('move - %s - %s', folder_id, response.text)
+        return AbstractDomain._read_response(response)
+
+    def rename(self, folder_id, new_name):
+        self._debug('rename - %s => %s', folder_id, new_name)
+        response = self._post('/folders/%s' % folder_id, dict(name=new_name))
+        self._debug('rename - %s - %s', folder_id, response.text)
+        return AbstractDomain._read_response(response)
+
+    def copy(self, folder_id, destination_folder_id):
+        self._debug('copy - %s => %s', folder_id, destination_folder_id)
+        response = self._post('/folders/%s' % folder_id,
+                              dict(parentFolderId=destination_folder_id, clone=True))
+        self._debug('copy - %s - %s', folder_id, response.text)
         return AbstractDomain._read_response(response)

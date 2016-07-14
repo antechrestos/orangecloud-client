@@ -1,4 +1,3 @@
-
 import httplib
 import unittest
 
@@ -52,3 +51,30 @@ class FoldersTest(unittest.TestCase):
         self.assertEqual('parent-id', folder.parentId)
         self.assertEqual(0, len(folder.files))
         self.assertEqual(0, len(folder.subFolders))
+
+    def test_copy(self):
+        self.client.mock_post('/folders/folder-id', httplib.OK,
+                              request_payload_path=('folders', 'POST_{id}_copy_request.json'),
+                              response_payload_path=('folders', 'POST_{id}_copy_response.json'))
+        response_file = self.folders.copy('folder-id', 'new-parent-id', )
+        self.assertEqual('new-folder-id', response_file.id)
+        self.assertEqual('new-name', response_file.name)
+        self.assertEqual('parent-id', response_file.parentId)
+
+    def test_move(self):
+        self.client.mock_post('/folders/folder-id', httplib.OK,
+                              request_payload_path=('folders', 'POST_{id}_move_request.json'),
+                              response_payload_path=('folders', 'POST_{id}_move_response.json'))
+        response_file = self.folders.move('folder-id', 'new-parent-id')
+        self.assertEqual('folder-id', response_file.id)
+        self.assertEqual('name', response_file.name)
+        self.assertEqual('new-parent-id', response_file.parentId)
+
+    def test_rename(self):
+        self.client.mock_post('/folders/folder-id', httplib.OK,
+                              request_payload_path=('folders', 'POST_{id}_rename_request.json'),
+                              response_payload_path=('folders', 'POST_{id}_rename_response.json'))
+        response_file = self.folders.rename('folder-id', 'new-name')
+        self.assertEqual('folder-id', response_file.id)
+        self.assertEqual('new-name', response_file.name)
+        self.assertEqual('parent-id', response_file.parentId)

@@ -43,11 +43,13 @@ class AbstractDomain(object):
     def _build_uri(uri):
         return '%s%s%s' % (URL_API, BASE_URI, uri)
 
-    def _get(self, uri, params=None):
-        return self._call(self.client.get, AbstractDomain._build_uri(uri), params=params)
+    def _get(self, uri, params=None, **kwargs):
+        kwargs['params'] = params
+        return self._call(self.client.get, AbstractDomain._build_uri(uri), **kwargs)
 
-    def _post(self, uri, json=None):
-        return self._call(self.client.post, AbstractDomain._build_uri(uri), json=json)
+    def _post(self, uri, json=None, **kwargs):
+        kwargs['json'] = json
+        return self._call(self.client.post, AbstractDomain._build_uri(uri), **kwargs)
 
     def _delete(self, uri):
         return self._call(self.client.delete, AbstractDomain._build_uri(uri))

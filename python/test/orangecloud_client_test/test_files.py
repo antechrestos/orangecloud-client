@@ -29,10 +29,10 @@ class FilesTest(unittest.TestCase):
         self.client.mock_post('/files/file-id', httplib.OK,
                               request_payload_path=('files', 'POST_{id}_copy_request.json'),
                               response_payload_path=('files', 'POST_{id}_copy_response.json'))
-        response_file = self.files.copy('file-id', 'new-name', 'new-parent-id')
+        response_file = self.files.copy('file-id', 'new-parent-id',)
         self.assertEqual('new-file-id', response_file.id)
         self.assertEqual('new-name', response_file.name)
-        self.assertEqual('new-parent-id', response_file.parentId)
+        self.assertEqual('parent-id', response_file.parentId)
 
     def test_move(self):
         self.client.mock_post('/files/file-id', httplib.OK,
