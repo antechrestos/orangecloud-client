@@ -5,6 +5,21 @@ from json import loads
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 from orangecloud_client_test.mock_api import MockClient
 from oranglecloud_client.files import Files
+from mock import create_autospec, mock
+
+
+class MockFile(object):
+    def __init__(self):
+        self.buffer = []
+
+    def write(self, s):
+        self.buffer.append(s)
+
+    def __enter__(self, *args, **kwargs):
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        return False
 
 
 class FilesTest(unittest.TestCase):
@@ -54,7 +69,7 @@ class FilesTest(unittest.TestCase):
         self.assertEqual('parent-id', response_file.parentId)
 
     def test_upload(self):
-        mock_response = self.client.mock_upload('/files/content', httplib.OK,
+        mock_response = self.client.mock_upload('/files/content', httplib.CREATED,
                                                 response_payload_path=('files', 'POST_response.json'))
         file_name = 'upload.jpg'
         mime_type = 'image/jpeg'
@@ -67,8 +82,8 @@ class FilesTest(unittest.TestCase):
             self.assertIn('multipart/form-data; ', headers.get('Content-Type', None))
             self.assertIsInstance(data, MultipartEncoder)
             self.assertIsNotNone(data.fields)
-            self.assertIsNotNone(data.fields.get('description', None))
-            self.assertIsNotNone(data.fields.get('file', None))
+            self.assertIn('description', data.fields)
+            self.assertIn('file', data.fields)
             description = loads(data.fields['description'])
             file_sent = data.fields['file']
             self.assertIsInstance(description, dict)
@@ -85,4 +100,20 @@ class FilesTest(unittest.TestCase):
         self.assertEqual('file-name', response_file.fileName)
 
     def test_download(self):
-        pass
+
+        url_download = 'http://some-url-for-dowload/som-path/file'
+        mock_response = self.client.mock_download(url_download, httplib.OK,
+                                                  response_payload_path=('files', 'download.txt'))
+
+        def check_data(data, json, **kwargs):
+            self.assertIn('stream', kwargs)
+            self.assertTrue(kwargs['stream'])
+
+        mock_response.check_data = check_data
+
+        @mock.patch('__builtin__.open', spec=open, return_value=MockFile())
+        def fire_test(mock_open):
+            self.files.download(url_download, 'somewhere.txt')
+            self.assertEqual(''.join(mock_open.return_value.buffer), 'Some data downloaded')
+
+        fire_test()

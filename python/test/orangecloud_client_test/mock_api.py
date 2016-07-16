@@ -55,11 +55,19 @@ class MockClient(object):
             self._post[response.url] = response
             return response
 
+    def mock_download(self, download_url, status_code, response_payload_path):
+        with open(path.join(path.dirname(__file__), '..', 'fixtures', *response_payload_path), 'r') as f:
+            response = MockResponse(download_url, status_code, f.read())
+            self._get[response.url] = response
+            return response
+
     def delete(self, url):
         return self._delete[url]
 
-    def get(self, url, params):
-        return self._get[MockClient._append_params(url, params)]
+    def get(self, url, params=None, **kwargs):
+        response = self._get[MockClient._append_params(url, params)]
+        response.check_data(None, None, **kwargs)
+        return response
 
     def post(self, url, data=None, json=None, **kwargs):
         response = self._post[url]

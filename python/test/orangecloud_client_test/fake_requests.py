@@ -17,3 +17,7 @@ class MockResponse(object):
 
     def json(self, **kwargs):
         return loads(self.text, **kwargs)
+
+    def __iter__(self):
+        for b in self.text:
+            yield b
