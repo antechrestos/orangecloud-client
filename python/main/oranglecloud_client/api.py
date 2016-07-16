@@ -33,7 +33,7 @@ class ApiManager(CredentialManager):
 
     SCOPES = ['openid', 'cloud']
 
-    def __init__(self, client_id, client_secret):
+    def __init__(self, client_id, client_secret, redirect_uri):
         proxies = dict(http=environ.get('HTTP_PROXY', ''), https=environ.get('HTTPS_PROXY', ''))
         # some certificates such as netatmo are invalid
         super(ApiManager, self).__init__(
@@ -48,3 +48,4 @@ class ApiManager(CredentialManager):
         self.folders = Folders(self)
         self.freespace = Freespace(self)
         self.files = Files(self)
+        self.redirect_uri = redirect_uri
