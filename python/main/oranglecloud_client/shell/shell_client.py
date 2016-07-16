@@ -4,6 +4,7 @@ import requests
 import sys
 import stat
 import random
+import logging
 from oauth2_client.credentials_manager import OAuthError
 from oranglecloud_client.api import ApiManager
 
@@ -11,25 +12,24 @@ _configuration_directory = os.path.join(os.path.expanduser('~'), '.orangecloud-c
 _configuration_file = os.path.join(_configuration_directory, 'configuration.json')
 
 
+_logger = logging.getLogger(__name__)
+
+
 class ShellClient(ApiManager):
     def __init__(self, client_id, client_secret, redirect_uri):
         super(ShellClient, self).__init__(client_id, client_secret, redirect_uri)
 
     def set_tokens(self, access_token, refresh_token):
-        if self._session is None:
-            self._session = requests.Session()
-            self._session.proxies = self.proxies
-            self._session.verify = not self.service_information.skip_ssl_verifications
-            self._session.trust_env = False
-        self._session.headers.update(dict(Authorization='Bearer %s' % access_token))
         self.refresh_token = refresh_token
+        self._init_session()
+        self._set_access_token(access_token)
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_type == OAuthError:
-            sys.stderr.write('OAuth error. Configuration will be erased')
+            _logger.error('OAuth error. Configuration will be erased')
             os.remove(_configuration_file)
         else:
             self.save_configuration()
@@ -53,7 +53,7 @@ class ShellClient(ApiManager):
 
 def _init_oauth_process(client):
     url_to_open = client.init_authorize_code_process(client.redirect_uri, state=str(random.random()))
-    print '\n ***** OPEN THIS URL IN YOUR BROWSER *****\n\t%s' % url_to_open
+    _logger.warning('***** OPEN THIS URL IN YOUR BROWSER *****\n\t%s', url_to_open)
     code = client.wait_and_terminate_authorize_code_process()
     client.init_with_authorize_code(redirect_uri=client.redirect_uri, code=code)
 

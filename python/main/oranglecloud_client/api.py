@@ -1,5 +1,6 @@
 import json
 import logging
+import httplib
 from os import environ
 
 from oauth2_client.credentials_manager import CredentialManager, ServiceInformation
@@ -49,3 +50,14 @@ class ApiManager(CredentialManager):
         self.freespace = Freespace(self)
         self.files = Files(self)
         self.redirect_uri = redirect_uri
+
+    @staticmethod
+    def _is_token_expired(response):
+        if response.status_code == httplib.UNAUTHORIZED:
+            try:
+                json_data = response.json()
+                return json_data.get('message', '') == 'Invalid credentials'
+            except:
+                return False
+        else:
+            return False

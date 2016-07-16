@@ -18,7 +18,7 @@ class MockFile(object):
     def __enter__(self, *args, **kwargs):
         return self
 
-    def __exit__(self, *args, **kwargs):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         return False
 
 
