@@ -54,9 +54,9 @@ class AbstractDomain(object):
     def _delete(self, uri):
         return self._call(self.client.delete, AbstractDomain._build_uri(uri))
 
-    def _call(self, method, path, **kwargs):
-        response = method(path, **kwargs)
-        return self._check_response(response, path)
+    def _call(self, method, url, **kwargs):
+        response = method(url, **kwargs)
+        return self._check_response(response, url)
 
     def _check_response(self, response, uri):
         if response.status_code >= 300:

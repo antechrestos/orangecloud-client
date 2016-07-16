@@ -1,7 +1,8 @@
 import httplib
 import unittest
-from oranglecloud_client import URL_UPLOAD, BASE_URI
-from orangecloud_client_test.fake_requests import MockResponse
+from os import path
+from json import loads
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 from orangecloud_client_test.mock_api import MockClient
 from oranglecloud_client.files import Files
 
@@ -29,7 +30,7 @@ class FilesTest(unittest.TestCase):
         self.client.mock_post('/files/file-id', httplib.OK,
                               request_payload_path=('files', 'POST_{id}_copy_request.json'),
                               response_payload_path=('files', 'POST_{id}_copy_response.json'))
-        response_file = self.files.copy('file-id', 'new-parent-id',)
+        response_file = self.files.copy('file-id', 'new-parent-id', )
         self.assertEqual('new-file-id', response_file.id)
         self.assertEqual('new-name', response_file.name)
         self.assertEqual('parent-id', response_file.parentId)
@@ -53,4 +54,35 @@ class FilesTest(unittest.TestCase):
         self.assertEqual('parent-id', response_file.parentId)
 
     def test_upload(self):
+        mock_response = self.client.mock_upload('/files/content', httplib.OK,
+                                                response_payload_path=('files', 'POST_response.json'))
+        file_name = 'upload.jpg'
+        mime_type = 'image/jpeg'
+        file_path = path.join(path.dirname(__file__), '..', 'fixtures', 'files', file_name)
+        folder_id = 'folder-id'
+
+        def check_data(data, _, **kwargs):
+            headers = kwargs.get('headers', None)
+            self.assertIsNotNone(headers)
+            self.assertIn('multipart/form-data; ', headers.get('Content-Type', None))
+            self.assertIsInstance(data, MultipartEncoder)
+            self.assertIsNotNone(data.fields)
+            self.assertIsNotNone(data.fields.get('description', None))
+            self.assertIsNotNone(data.fields.get('file', None))
+            description = loads(data.fields['description'])
+            file_sent = data.fields['file']
+            self.assertIsInstance(description, dict)
+            self.assertIsInstance(file_sent, tuple)
+            self.assertEqual(description.get('name', None), file_name)
+            self.assertEqual(description.get('folder', None), folder_id)
+            self.assertEqual(len(file_sent), 3)
+            self.assertEqual(file_sent[0], file_name)
+            self.assertEqual(file_sent[2], mime_type)
+
+        mock_response.check_data = check_data
+        response_file = self.files.upload(file_path, folder_id)
+        self.assertEqual('file-id', response_file.fileId)
+        self.assertEqual('file-name', response_file.fileName)
+
+    def test_download(self):
         pass

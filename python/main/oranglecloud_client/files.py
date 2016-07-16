@@ -63,8 +63,8 @@ class Files(AbstractDomain):
                 fields=dict(description=json.dumps(dict(description)),
                             file=(file_name, f, mime_type))
             )
-            response = self._post('%s%s%s' % (URL_UPLOAD, BASE_URI, uri),
+            response = self._call(self.client.post, '%s%s%s' % (URL_UPLOAD, BASE_URI, uri),
                                   data=m,
                                   headers={'Content-Type': m.content_type})
             self._debug('upload - %s - %s', file_name, response.text)
-            return self._check_response(response, uri)
+            return AbstractDomain._read_response(response)

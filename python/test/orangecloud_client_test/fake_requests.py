@@ -1,5 +1,5 @@
 import httplib
-import json
+from json import loads
 
 
 class MockResponse(object):
@@ -12,8 +12,8 @@ class MockResponse(object):
         if headers is not None:
             self.headers.update(headers)
 
-    def check_data(self, **kwargs):
+    def check_data(self, data, json, **kwargs):
         pass
 
     def json(self, **kwargs):
-        return json.loads(self.text, **kwargs)
+        return loads(self.text, **kwargs)
