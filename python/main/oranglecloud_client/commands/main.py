@@ -2,8 +2,8 @@
 import os
 import logging
 import argparse
-from oranglecloud_client.shell.interactive import shell
-from oranglecloud_client.shell.shell_client import load_client
+from oranglecloud_client.commands.interactive import shell
+from oranglecloud_client.commands.shell_client import load_client
 
 
 def mkdir(client, arg):
@@ -87,8 +87,8 @@ def main():
     download_parser.add_argument('-file_id', action='store', dest='file_id', type=str, required=True,
                                  help='The file id')
 
-    # shell
-    subparsers.add_parser('shell', help='Start interactive shell')
+    # commands
+    subparsers.add_parser('commands', help='Start interactive commands')
 
     arguments = parser.parse_args()
     with load_client() as client:
