@@ -47,8 +47,9 @@ def download(client, arg):
 
 
 def main():
-    logging.basicConfig(level=logging.INFO, format='%(message)s')
     parser = argparse.ArgumentParser(add_help=True)
+    parser.add_argument('-debug', action='store_true', dest='loglevel', default=False, help='Set default log to DEBUG')
+
     subparsers = parser.add_subparsers(help='commands', dest='action')
     # mkdir
     mkdir_parser = subparsers.add_parser('mkdir', help='Create a directory')
@@ -91,6 +92,11 @@ def main():
     subparsers.add_parser('commands', help='Start interactive commands')
 
     arguments = parser.parse_args()
+    if arguments.loglevel:
+        logging.basicConfig(level=logging.DEBUG, format='%(message)s')
+    else:
+        logging.basicConfig(level=logging.INFO, format='%(message)s')
+
     with load_client() as client:
         globals()[arguments.action](client, arguments)
 
