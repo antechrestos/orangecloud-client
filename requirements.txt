@@ -1,2 +1,2 @@
-oauth2-client==0.0.11
+oauth2-client==0.0.12
 requests-toolbelt==0.6.2
