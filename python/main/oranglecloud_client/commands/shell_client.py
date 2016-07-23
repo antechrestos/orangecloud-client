@@ -1,6 +1,5 @@
 import os
 import json
-import requests
 import sys
 import stat
 import random
