@@ -5,13 +5,14 @@ class Folders(AbstractDomain):
     def __init__(self, client):
         super(Folders, self).__init__(client, 'folders')
 
-    def get(self, folder_id=None, filtered_params=None):
+    def get(self, folder_id=None, **kwargs):
         folder_name = folder_id if folder_id is not None else 'root'
         self._debug('get - %s', folder_name)
+        parameters = None if len(kwargs) == 0 else kwargs
         if folder_id is None:
-            response = self._get('/folders', filtered_params)
+            response = self._get('/folders', params=parameters)
         else:
-            response = self._get('/folders/%s' % folder_id, filtered_params)
+            response = self._get('/folders/%s' % folder_id, params=parameters)
         self._debug('get - %s - %s', folder_name, response.text)
         return AbstractDomain._read_response(response)
 
