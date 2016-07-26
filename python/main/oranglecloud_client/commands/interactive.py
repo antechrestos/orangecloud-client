@@ -1,5 +1,7 @@
 import logging
 import sys
+import os
+import stat
 
 _logger = logging.getLogger(__name__)
 
@@ -30,7 +32,7 @@ def shell(client):
                 sys.stderr.write('Command not found: %s' % command_name)
             else:
                 command(client, *parameters)
-                
+
 
 def cd(_, *args):
     global _path
@@ -44,7 +46,7 @@ def cd(_, *args):
             if args[0] == sub_folder.name:
                 _path.append(sub_folder.id)
                 return
-        sys.stderr.write('Folder not found: %s\n' % args[0])
+        sys.stderr.write('cd: Folder not found: %s\n' % args[0])
 
 
 def ls(_, *args):
@@ -70,7 +72,7 @@ def ls(_, *args):
             if sub_file.name == args[1]:
                 print '%s - %s - %d' % (sub_file.name, sub_file.creationDate, sub_file.size)
                 return
-        sys.stderr.write('File/Folder not found: %s\n' % args[1])
+        sys.stderr.write('ls: File/Folder not found: %s\n' % args[1])
 
 
 def mkdir(client, *args):
@@ -86,9 +88,14 @@ def upload(client, *args):
     if len(args) != 1:
         sys.stderr.write('upload <filesytem path>\n')
         return
-    else:
+    elif os.path.isfile(args[0]):
         client.files.upload(args[0], _get_current_dir())
         sync(client)
+    elif os.path.isdir(args[0]):
+        _upload_directory(client, args[0], _get_current_dir())
+    else:
+        sys.stderr.write('upload: Bad system file, must be either a directory or a file: %s\n' % args[0])
+        return
 
 
 def download(client, *args):
@@ -96,12 +103,25 @@ def download(client, *args):
     if len(args) != 1:
         sys.stderr.write('download <subfile name> <destination file path>\n')
         return
-    else:
+    elif os.path.isdir(args[1]):
         for sub_file in _current_folder.files:
             if sub_file.name == args[0]:
-                client.files.download(sub_file.downloadUrl, args[1])
+                client.files.download(sub_file.downloadUrl, os.path.join(args[1], sub_file.name))
                 return
-        sys.stderr.write('File not found: %s\n' % args[0])
+        for sub_directory in _current_folder.subFolders:
+            if sub_directory.name == args[0]:
+                destination_path = os.path.join(args[1], sub_directory.name)
+                if not os.path.exists(destination_path):
+                    _create_local_directory(destination_path)
+                elif not os.path.isdir(destination_path) or not os.access(destination_path, os.W_OK):
+                    sys.stderr.write('download: %s exist and is not a writable directory\n')
+                    return
+                else:
+                    _download_directory(client, sub_directory, destination_path)
+                    return
+        sys.stderr.write('download: File/Folder not found: %s\n' % args[0])
+    else:
+        sys.stderr.write('download: Local Folder not found: %s\n' % args[1])
 
 
 def freespace(client, *args):
@@ -166,3 +186,26 @@ def _get_path():
 def _get_current_dir():
     global _path
     return None if len(_path) == 0 else _path[len(_path) - 1]
+
+
+def _upload_directory(client, directory_path, current_directory_id):
+    for sub_entity in os.listdir(directory_path):
+        full_path = os.path.join(directory_path, sub_entity)
+        if os.path.isfile(full_path):
+            client.files.upload(full_path, current_directory_id)
+        elif os.path.isdir(full_path):
+            sub_directory = client.folders.create(sub_entity, current_directory_id)
+            _upload_directory(full_path, sub_directory.id)
+
+
+def _create_local_directory(destination_path):
+    os.mkdir(destination_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+
+
+def _download_directory(client, directory, destination_path):
+    for sub_file in directory.files:
+        client.files.download(sub_file.downloadUrl, os.path.join(destination_path, sub_file.name))
+    for sub_folder in directory.subFolders:
+        sub_folder_path = os.path.join(destination_path, sub_folder.name)
+        _create_local_directory(sub_folder_path)
+        _download_directory(client, sub_folder, sub_folder_path)
