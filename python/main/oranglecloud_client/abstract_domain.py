@@ -1,3 +1,4 @@
+import json
 import logging
 
 from oranglecloud_client import URL_API, BASE_URI
@@ -5,23 +6,15 @@ from oranglecloud_client.error_handling import raise_error, raise_response_error
 
 
 class JsonObject(dict):
-    def json(self):
-        return JsonObject._to_json(self)
-
-    @staticmethod
-    def _to_json(instance):
-        if type(instance) == JsonObject:
-            result = dict()
-            for k, v in instance.__dict__.items():
-                if '__call__' not in dir(v):
-                    result[k] = JsonObject._to_json(v)
-            return result
-        elif type(instance) == dict:
-            return {k: JsonObject._to_json(v) for k, v in instance.items()}
-        elif type(instance) == list:
-            return [JsonObject._to_json(elem) for elem in instance]
+    def __init__(self, seq=None, **kwargs):
+        if seq is None:
+            super(JsonObject, self).__init__(**kwargs)
         else:
-            return instance
+            super(JsonObject, self).__init__(seq)
+        self.__dict__ = self
+
+    def json(self):
+        return json.dumps(self)
 
 
 class AbstractDomain(object):
@@ -66,10 +59,4 @@ class AbstractDomain(object):
 
     @staticmethod
     def _read_response(response):
-        def _json_hook(pairs):
-            result = JsonObject()
-            for k in pairs:
-                result.__setattr__(k[0], k[1])
-            return result
-
-        return response.json(object_pairs_hook=_json_hook)
+        return response.json(object_pairs_hook=lambda pairs: JsonObject(pairs))

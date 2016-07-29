@@ -1,7 +1,7 @@
 #!/usr/bin/python2.7
 import os
 import logging
-import argparse
+from argparse import ArgumentParser
 from oranglecloud_client.commands.interactive import shell
 from oranglecloud_client.commands.shell_client import load_client
 
@@ -24,28 +24,29 @@ def _ls(client, arg):
 
 
 def _rm(client, arg):
-    if arg.rmdir:
+    if arg.rm_dir:
         client.folders.delete(arg.id[0])
     else:
         client.files.delete(arg.id[0])
 
 
 def _freespace(client, arg):
+    print "_freespace"
     response = client.freespace.get()
     print response.freespace
 
 
 def _upload(client, arg):
-    client.files.upload(arg.file_path, arg.parent_id)
+    client.files.upload(arg.file_path[0], arg.folder)
 
 
 def _download(client, arg):
-    response = client.freespace.get(arg.file_id)
-    client.files.download(response.downloadUrl, os.path.join(arg.download_path, response.name))
+    response = client.files.get(arg.id[0])
+    client.files.download(response.downloadUrl, os.path.join(arg.output_dir, response.name))
 
 
 def main():
-    parser = argparse.ArgumentParser(add_help=True)
+    parser = ArgumentParser(add_help=True)
     parser.add_argument('-debug', action='store_true', dest='loglevel', default=False, help='Set default log to DEBUG')
 
     subparsers = parser.add_subparsers(help='commands', dest='action')
@@ -67,24 +68,18 @@ def main():
 
     # freespace
     subparsers.add_parser('freespace', help='Display freespace')
-    # details
-    details_parser = subparsers.add_parser('details', help='Display details of a file')
-    details_parser.add_argument('-file_id', action='store', dest='file_id', type=str, required=True,
-                                help='The file id')
 
     # upload
     upload_parser = subparsers.add_parser('upload', help='Upload a file')
-    upload_parser.add_argument('-file_path', action='store', dest='file_path', type=str, required=True,
-                               help='The file path')
-    upload_parser.add_argument('-parent_id', action='store', dest='parent_id', type=str, default=None,
-                               help='The parent folder id (default is root)')
+    upload_parser.add_argument('-folder', action='store', dest='folder', type=str, default=None,
+                               help='The folder id (default is root)')
+    upload_parser.add_argument('file_path', metavar='file_path', nargs=1, help='The file path')
 
     # download
     download_parser = subparsers.add_parser('download', help='Download a file')
-    download_parser.add_argument('-download_path', action='store', dest='download_path', type=str, required=True,
-                                 help='The directory where the file will be downloaded')
-    download_parser.add_argument('-file_id', action='store', dest='file_id', type=str, required=True,
-                                 help='The file id')
+    download_parser.add_argument('-output_dir', action='store', dest='output_dir', type=str, default=os.path.curdir,
+                                 help='The directory where the file will be downloaded (default is current directory)')
+    download_parser.add_argument('id', metavar='id', nargs=1, help='File id')
 
     # commands
     subparsers.add_parser('shell', help='Start interactive commands')
@@ -101,6 +96,8 @@ def main():
             shell(client)
         else:
             # all functions are prefixed with underscore
+            print globals().keys()
+            print arguments.action
             globals()['_%s' % arguments.action](client, arguments)
 
 

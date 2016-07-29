@@ -56,9 +56,9 @@ class FilesTest(unittest.TestCase):
         self.client.post.return_value = mock_api_response('/files/file-id',
                                                           httplib.OK,
                                                           None,
-                                                          'folders', 'POST_{id}_move_response.json')
+                                                          'files', 'POST_{id}_copy_response.json')
 
-        response_file = self.files.copy('file-id', 'new-parent-id', )
+        response_file = self.files.copy('file-id', 'new-parent-id')
         self.client.post.assert_called_with(self.client.post.return_value.url,
                                             json=dict(parentFolderId='new-parent-id', clone=True))
         self.assertEqual('new-file-id', response_file.id)
