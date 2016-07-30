@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import os
 import shutil
 
-src_dir = '.'
+src_dir = 'main'
 package_directory = 'orangecloud_client'
 package_name = 'orangecloud-client'
 

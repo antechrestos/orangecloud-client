@@ -1,4 +1,4 @@
-python/test/sandbox.py
+test/sandbox.py
 .idea/
 *.pyc
 build/
