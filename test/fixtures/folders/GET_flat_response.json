@@ -1,0 +1,71 @@
+{
+  "files": [
+    {
+      "size": 47274,
+      "name": "upload.jpg",
+      "lastUpdateDate": "2016-07-30T14:20:26+0200",
+      "creationDate": "2016-07-30T14:20:26+0200",
+      "type": "PICTURE",
+      "id": "bWVzIGRvc3NpZXJzIHBhcnRlbmFpcmVzL0Nsb3VkQ2xpZW50L1Rlc3QgZm9sZGVyL1Rlc3Qgc3ViLWZvbGRlci91cGxvYWQuanBn",
+      "metadata": {
+        "width": "300",
+        "rotationAngle": "ZERO",
+        "height": "305"
+      }
+    },
+    {
+      "size": 47274,
+      "name": "upload(1).jpg",
+      "lastUpdateDate": "2016-07-30T14:11:12+0200",
+      "creationDate": "2016-07-30T14:11:11+0200",
+      "type": "PICTURE",
+      "id": "bWVzIGRvc3NpZXJzIHBhcnRlbmFpcmVzL0Nsb3VkQ2xpZW50L3VwbG9hZCgxKS5qcGc",
+      "metadata": {
+        "width": "300",
+        "rotationAngle": "ZERO",
+        "height": "305"
+      }
+    },
+    {
+      "size": 47274,
+      "name": "upload.jpg",
+      "lastUpdateDate": "2016-07-16T11:07:33+0200",
+      "creationDate": "2016-07-16T11:07:33+0200",
+      "type": "PICTURE",
+      "id": "bWVzIGRvc3NpZXJzIHBhcnRlbmFpcmVzL0Nsb3VkQ2xpZW50L3VwbG9hZC5qcGc",
+      "metadata": {
+        "width": "300",
+        "rotationAngle": "ZERO",
+        "height": "305"
+      }
+    },
+    {
+      "size": 47274,
+      "name": "copy.jpg",
+      "lastUpdateDate": "2016-07-14T16:48:38+0200",
+      "creationDate": "2016-07-14T16:13:44+0200",
+      "type": "PICTURE",
+      "id": "bWVzIGRvc3NpZXJzIHBhcnRlbmFpcmVzL0Nsb3VkQ2xpZW50L2NvcHkuanBn",
+      "metadata": {
+        "width": "300",
+        "rotationAngle": "ZERO",
+        "height": "305"
+      }
+    }
+  ],
+  "subfolders": [
+    {
+      "parentId": "bWVzIGRvc3NpZXJzIHBhcnRlbmFpcmVzL0Nsb3VkQ2xpZW50L1Rlc3QgZm9sZGVyLw",
+      "id": "bWVzIGRvc3NpZXJzIHBhcnRlbmFpcmVzL0Nsb3VkQ2xpZW50L1Rlc3QgZm9sZGVyL1Rlc3Qgc3ViLWZvbGRlci8",
+      "name": "Test sub-folder"
+    },
+    {
+      "parentId": "bWVzIGRvc3NpZXJzIHBhcnRlbmFpcmVzL0Nsb3VkQ2xpZW50Lw",
+      "id": "bWVzIGRvc3NpZXJzIHBhcnRlbmFpcmVzL0Nsb3VkQ2xpZW50L1Rlc3QgZm9sZGVyLw",
+      "name": "Test folder"
+    }
+  ],
+  "id": "bWVzIGRvc3NpZXJzIHBhcnRlbmFpcmVzL0Nsb3VkQ2xpZW50Lw",
+  "name": "CloudClient",
+  "parentId": "bWVzIGRvc3NpZXJzIHBhcnRlbmFpcmVzL0Nsb3VkQ2xpZW50Lw"
+}

@@ -13,8 +13,8 @@ class JsonObject(dict):
             super(JsonObject, self).__init__(seq)
         self.__dict__ = self
 
-    def json(self):
-        return json.dumps(self)
+    def json(self, **kwargs):
+        return json.dumps(self, **kwargs)
 
 
 class AbstractDomain(object):
