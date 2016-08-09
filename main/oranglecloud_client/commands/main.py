@@ -1,9 +1,10 @@
 #!/usr/bin/python2.7
-import os
 import logging
+import os
 from argparse import ArgumentParser
-from oranglecloud_client.commands.interactive import shell
-from oranglecloud_client.commands.shell_client import load_client
+
+from oranglecloud_client.commands.command_client import load_client
+from oranglecloud_client.commands.shell import launch_interactive_shell
 
 
 def _mkdir(client, arg):
@@ -93,7 +94,7 @@ def main():
     with load_client() as client:
         # this distinction to tells I use th import
         if arguments.action == 'shell':
-            shell(client)
+            launch_interactive_shell(client)
         else:
             # all functions are prefixed with underscore
             print globals().keys()

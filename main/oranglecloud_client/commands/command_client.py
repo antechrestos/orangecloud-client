@@ -14,9 +14,9 @@ _configuration_file = os.path.join(_configuration_directory, 'configuration.json
 _logger = logging.getLogger(__name__)
 
 
-class ShellClient(ApiManager):
+class _CommandClient(ApiManager):
     def __init__(self, client_id, client_secret, redirect_uri):
-        super(ShellClient, self).__init__(client_id, client_secret, redirect_uri)
+        super(_CommandClient, self).__init__(client_id, client_secret, redirect_uri)
 
     def set_tokens(self, access_token, refresh_token):
         self.refresh_token = refresh_token
@@ -70,7 +70,7 @@ def _init_client():
     redirect_uri = prompt('Redirect Uri')
     if not os.path.exists(_configuration_directory):
         os.mkdir(_configuration_directory, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
-    client = ShellClient(client_id, client_secret, redirect_uri)
+    client = _CommandClient(client_id, client_secret, redirect_uri)
     _init_oauth_process(client)
     # save first time, meaning configuration works
     client.save_configuration()
@@ -91,7 +91,7 @@ def load_client():
             refresh_token = configuration.get('refresh_token')
             if client_id is None or client_secret is None or redirect_uri is None:
                 return _init_client()
-            result = ShellClient(client_id, client_secret, redirect_uri)
+            result = _CommandClient(client_id, client_secret, redirect_uri)
             if refresh_token is not None:
                 # do not accept access without refresh token
                 if access_token is not None:

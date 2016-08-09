@@ -19,34 +19,6 @@ class _Folder(object):
         self.files = None
 
 
-def shell(client):
-    ask_exit = False
-    reload_cache(client)
-    commands = dict(cd=cd, ls=ls, mkdir=mkdir, upload=upload, download=download, freespace=freespace,
-                    reload_cache=reload_cache, pwd=pwd)
-    sys.stdout.write('''
-Welcome to the orangecloud shell. Type \'help\' to know all the available commands
-''')
-
-    while not ask_exit:
-        sys.stdout.write('%s >' % _get_path())
-        command_line = sys.stdin.readline()
-        command_line = command_line.rstrip('\r\n').lstrip(' \t')
-        command_line_splitted = command_line.split(' ')
-        command_name = command_line_splitted[0]
-        parameters = tuple(command_line_splitted[1:])
-        if command_name == 'exit':
-            break
-        elif command_name == 'help':
-            sys.stderr.write('Available commands: %s' % ', '.join(commands.keys()))
-        else:
-            command = commands.get(command_name)
-            if command is None:
-                sys.stderr.write('Command not found: %s' % command_name)
-            else:
-                command(client, *parameters)
-
-
 def cd(_, *args):
     global _current_folder
     global _root
@@ -204,10 +176,10 @@ def reload_cache(client, *args):
 
 
 def pwd(*args):
-    print _get_path()
+    print get_path()
 
 
-def _get_path():
+def get_path():
     global _current_folder
     result = []
     visitor = _current_folder
