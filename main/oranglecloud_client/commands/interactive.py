@@ -21,9 +21,13 @@ class _Folder(object):
 
 def shell(client):
     ask_exit = False
-    sync()
+    reload_cache(client)
     commands = dict(cd=cd, ls=ls, mkdir=mkdir, upload=upload, download=download, freespace=freespace,
-                    sync=sync, pwd=pwd)
+                    reload_cache=reload_cache, pwd=pwd)
+    sys.stdout.write('''
+Welcome to the orangecloud shell. Type \'help\' to know all the available commands
+''')
+
     while not ask_exit:
         sys.stdout.write('%s >' % _get_path())
         command_line = sys.stdin.readline()
@@ -33,6 +37,8 @@ def shell(client):
         parameters = tuple(command_line_splitted[1:])
         if command_name == 'exit':
             break
+        elif command_name == 'help':
+            sys.stderr.write('Available commands: %s' % ', '.join(commands.keys()))
         else:
             command = commands.get(command_name)
             if command is None:
@@ -44,21 +50,30 @@ def shell(client):
 def cd(_, *args):
     global _current_folder
     global _root
-    if len(args) != 1:
+    if len(args) != 1 or len(args[0]) == 0:
         sys.stderr.write('cd <sub folder name or ..>\n')
         return
-    elif args[0] == '..':
-        if _current_folder.parent is not None:
-            _current_folder = _current_folder.parent
-    elif args[0] == '/':
-        _current_folder = _root
     else:
-
-        for sub_folder in _current_folder.sub_folders:
-            if args[0] == sub_folder.name:
-                _current_folder = sub_folder
-                return
-        sys.stderr.write('cd: Folder not found: %s\n' % args[0])
+        path = args[0]
+        path_walked = []
+        if path[0] == '/':
+            _current_folder = _root
+            path = path[1:]
+            path_walked.append('')
+        for sub_path in path.split('/'):
+            if len(sub_path) > 0:
+                if sub_path == '..' and _current_folder.parent is not None:
+                    _current_folder = _current_folder.parent
+                elif sub_path != '.':
+                    found = False
+                    for sub_folder in _current_folder.sub_folders:
+                        if sub_path == sub_folder.name:
+                            _current_folder = sub_folder
+                            found = True
+                            break
+                    if not found:
+                        sys.stderr.write('cd: Folder not found: %s\n' % '/'.join(path_walked))
+            path_walked.append(sub_path)
 
 
 def ls(client, *args):
@@ -69,24 +84,25 @@ def ls(client, *args):
 
     def print_folder(folder):
         for entity in folder.sub_folders:
-            print '%d/' % entity.name
+            print '%s/' % entity.name
         for entity in folder.files:
-            print '%d' % entity.name
+            print '%s' % entity.name
 
     _load_files_if_necessary(client, _current_folder)
     if len(args) == 0:
         print_folder(_current_folder)
     else:
+        entity_name = args[0]
         for sub_folder in _current_folder.sub_folders:
-            if sub_folder.name == args[1]:
+            if sub_folder.name == entity_name:
                 _load_files_if_necessary(client, sub_folder)
                 print_folder(sub_folder)
                 return
         for sub_file in _current_folder.files:
-            if sub_file.name == args[1]:
+            if sub_file.name == entity_name:
                 print '%s - %s - %d' % (sub_file.name, sub_file.creationDate, sub_file.size)
                 return
-        sys.stderr.write('ls: File/Folder not found: %s\n' % args[1])
+        sys.stderr.write('ls: File/Folder not found: %s\n' % entity_name)
 
 
 def mkdir(client, *args):
@@ -120,20 +136,26 @@ def download(client, *args):
     if len(args) != 1:
         sys.stderr.write('download <subfile name> <destination file path>\n')
         return
+    elif not os.path.isdir(args[1]):
+        sys.stderr.write('download: invalid directory\n' % args[1])
+        return
+    elif args[0] == '.':
+        _download_directory(client, _current_folder, args[1])
     else:
         _load_files_if_necessary(client, _current_folder)
-
+        entity_name = args[0]
         for sub_file in _current_folder.files:
-            if sub_file.name == args[0]:
+            if sub_file.name == entity_name:
                 client.files.download(sub_file.downloadUrl, os.path.join(args[1], sub_file.name))
                 return
+
         for sub_directory in _current_folder.sub_folders:
-            if sub_directory.name == args[0]:
+            if sub_directory.name == entity_name:
                 destination_path = os.path.join(args[1], sub_directory.name)
                 if not os.path.exists(destination_path):
                     _create_local_directory(destination_path)
                 elif not os.path.isdir(destination_path) or not os.access(destination_path, os.W_OK):
-                    sys.stderr.write('download: %s exist and is not a writable directory\n')
+                    sys.stderr.write('download: %s exist and is not a writable directory\n' % destination_path)
                     return
                 else:
                     _download_directory(client, sub_directory, destination_path)
@@ -156,14 +178,16 @@ def freespace(client, *args):
         print '%0.1f' % ((freespace_in_octet * 10.) / one_go)
 
 
-def sync(client, *args):
+def reload_cache(client, *args):
     global _root
     global _current_folder
     flat_hierarchy = client.folders.get(flat=True)
     root = _Folder(flat_hierarchy.id, None, flat_hierarchy.name)
-    folders_by_id = {flat_hierarchy.id: _Folder(f.id, None, f.name) for f in flat_hierarchy.subFolders}
+    folders_by_id = {f.id: _Folder(f.id, None, f.name) for f in flat_hierarchy.subfolders}
     folders_by_id[root.folder_id] = root
-    for f in flat_hierarchy.subFolders:
+    for f in flat_hierarchy.subfolders:
+        if f.parentId not in folders_by_id:
+            sys.stderr.write('%s not in list. Available: \n%s\n' % (f.parentId, '\n'.join(folders_by_id.keys())))
         parent = folders_by_id[f.parentId]
         folder = folders_by_id[f.id]
         folder.parent = parent
@@ -219,10 +243,15 @@ def _download_directory(client, folder, destination_path):
         client.files.download(sub_file.downloadUrl, os.path.join(destination_path, sub_file.name))
     for sub_folder in folder.sub_folders:
         sub_folder_path = os.path.join(destination_path, sub_folder.name)
-        _create_local_directory(sub_folder_path)
-        _download_directory(client, sub_folder, sub_folder_path)
+        if not os.path.exists(sub_folder_path):
+            _create_local_directory(sub_folder_path)
+        elif not os.path.isdir(sub_folder_path) or not os.access(sub_folder_path, os.W_OK):
+            sys.stderr.write('download: %s exist and is not a writable directory\n' % sub_folder_path)
+            return
+        else:
+            _download_directory(client, sub_folder, sub_folder_path)
 
 
-def _load_files_if_necessary(client, folder, force=True):
+def _load_files_if_necessary(client, folder, force=False):
     if folder.files is None or force:
         folder.files = client.folders.get(folder.folder_id).files

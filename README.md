@@ -1,4 +1,4 @@
-# Orange Cloud Client [![license](https://img.shields.io/github/license/antechrestos/orangecloud-client.svg)]()
+# Orange Cloud Client [![license](https://img.shields.io/github/license/antechrestos/orangecloud-client.svg)](https://raw.githubusercontent.com/antechrestos/orangecloud-client/master/LICENSE)
 
 
 ## *Description*
