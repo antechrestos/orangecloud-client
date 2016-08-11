@@ -19,7 +19,7 @@ class TestMain(unittest.TestCase):
         fake_client.freespace.get.assert_called_with()
 
     @mock.patch.object(sys, 'argv', ['main', 'shell'])
-    @mock.patch('oranglecloud_client.commands.main.shell')
+    @mock.patch('oranglecloud_client.commands.main.launch_interactive_shell')
     @mock.patch('oranglecloud_client.commands.main.load_client')
     def test_shell(self, mock_client_loader, fake_shell):
         fake_client = self._configure_mock_client(mock_client_loader)

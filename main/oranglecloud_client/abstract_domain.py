@@ -6,15 +6,9 @@ from oranglecloud_client.error_handling import raise_error, raise_response_error
 
 
 class JsonObject(dict):
-    def __init__(self, seq=None, **kwargs):
-        if seq is None:
-            super(JsonObject, self).__init__(**kwargs)
-        else:
-            super(JsonObject, self).__init__(seq)
+    def __init__(self, *args, **kwargs):
+        super(JsonObject, self).__init__(*args, **kwargs)
         self.__dict__ = self
-
-    def json(self, **kwargs):
-        return json.dumps(self, **kwargs)
 
 
 class AbstractDomain(object):
