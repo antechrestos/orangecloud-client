@@ -1,3 +1,7 @@
+class InvalidSynthax(Exception):
+    pass
+
+
 def parse_line(line):
     line = line.rstrip('\r\n').lstrip(' \t').replace('\t', ' ')
     idx_first_space = line.find(' ')
@@ -13,20 +17,31 @@ def _split_parameters(parameters):
     result = []
     escape_character = '\\'
     split_character = ' '
+    quoting_character = '"'
+    special_characters = [escape_character, split_character, quoting_character]
     previous_escape = False
+    quoting = False
     current_parameter = []
     for character in parameters:
-        if previous_escape or (character != escape_character and character != split_character):
+        if previous_escape or character not in special_characters:
             current_parameter.append(character)
             previous_escape = False
         elif character == escape_character:
             previous_escape = True
-        elif len(current_parameter) > 0:
-            result.append(''.join(current_parameter))
-            current_parameter = []
+        elif character == quoting_character:
+            quoting = not quoting
+        elif character == split_character:
+            if quoting:
+                current_parameter.append(character)
+            elif len(current_parameter) > 0:
+                result.append(''.join(current_parameter))
+                current_parameter = []
+    if quoting:
+        print 'parameters=%s' % parameters
+        print 'result=%s' % result
+        print 'current_parameter=%s' % current_parameter
+        raise InvalidSynthax('Unfinished quoting: %s' % parameters)
     if len(current_parameter) > 0:
         result.append(''.join(current_parameter))
     print '_split_parameters - %s => %s' % (parameters, str(result))
     return tuple(result)
-
-

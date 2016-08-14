@@ -2,7 +2,7 @@ import sys
 
 from oranglecloud_client.commands.shell.commands import cd, ls, mkdir, upload, download, freespace, reload_cache, pwd, \
     get_path
-from oranglecloud_client.commands.shell.parser import parse_line
+from oranglecloud_client.commands.shell.parser import parse_line, InvalidSynthax
 
 
 def launch_interactive_shell(client):
@@ -16,14 +16,17 @@ Welcome to the orangecloud shell. Type \'help\' to know all the available comman
 
     while not ask_exit:
         sys.stdout.write('%s >' % get_path())
-        command_name, parameters = parse_line(sys.stdin.readline())
-        if command_name == 'exit':
-            break
-        elif command_name == 'help':
-            sys.stderr.write('Available commands: %s' % ', '.join(commands_mapping.keys()))
-        else:
-            command = commands_mapping.get(command_name)
-            if command is None:
-                sys.stderr.write('Command not found: %s' % command_name)
+        try:
+            command_name, parameters = parse_line(sys.stdin.readline())
+            if command_name == 'exit':
+                break
+            elif command_name == 'help':
+                sys.stderr.write('Available commands: %s\n' % ', '.join(commands_mapping.keys()))
             else:
-                command(client, *parameters)
+                command = commands_mapping.get(command_name)
+                if command is None:
+                    sys.stderr.write('Command not found: %s\n' % command_name)
+                else:
+                    command(client, *parameters)
+        except InvalidSynthax, ex:
+            sys.stderr.write('%s\n', ex.message)

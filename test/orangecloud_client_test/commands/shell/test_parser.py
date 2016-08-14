@@ -1,6 +1,6 @@
 import unittest
 
-from oranglecloud_client.commands.shell.parser import parse_line
+from oranglecloud_client.commands.shell.parser import parse_line, InvalidSynthax
 
 
 class TestParser(unittest.TestCase):
@@ -38,3 +38,6 @@ class TestParser(unittest.TestCase):
         self.assertEqual(1, len(parameters))
         self.assertEqual('cd', command)
         self.assertEqual('somewhere "escaped ', parameters[0])
+
+    def test_bad_quoted_command(self):
+        self.assertRaises(InvalidSynthax, parse_line, 'cd "somewhere \\"')
