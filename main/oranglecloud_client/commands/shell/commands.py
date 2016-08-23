@@ -2,7 +2,7 @@ import logging
 import os
 import stat
 import sys
-
+import json
 _logger = logging.getLogger(__name__)
 
 _root = None
@@ -44,7 +44,9 @@ def cd(_, *args):
                             found = True
                             break
                     if not found:
+                        path_walked.append(sub_path)
                         sys.stderr.write('cd: Folder not found: %s\n' % '/'.join(path_walked))
+                        return
             path_walked.append(sub_path)
 
 
@@ -94,7 +96,7 @@ def upload(client, *args):
         return
     elif os.path.isfile(args[0]):
         client.files.upload(args[0], _current_folder.folder_id)
-        _load_files_if_necessary(client, True)
+        _load_files_if_necessary(client, _current_folder, True)
     elif os.path.isdir(args[0]):
         folders_created = _upload_directory(client, args[0], _current_folder)
         _current_folder.sub_folders.append(folders_created)
@@ -105,7 +107,7 @@ def upload(client, *args):
 
 def download(client, *args):
     global _current_folder
-    if len(args) != 1:
+    if len(args) != 2:
         sys.stderr.write('download <subfile name> <destination file path>\n')
         return
     elif not os.path.isdir(args[1]):
@@ -118,7 +120,8 @@ def download(client, *args):
         entity_name = args[0]
         for sub_file in _current_folder.files:
             if sub_file.name == entity_name:
-                client.files.download(sub_file.downloadUrl, os.path.join(args[1], sub_file.name))
+                file_info = client.files.get(sub_file.id)
+                client.files.download(file_info.downloadUrl, os.path.join(args[1], sub_file.name))
                 return
 
         for sub_directory in _current_folder.sub_folders:
@@ -126,7 +129,7 @@ def download(client, *args):
                 destination_path = os.path.join(args[1], sub_directory.name)
                 if not os.path.exists(destination_path):
                     _create_local_directory(destination_path)
-                elif not os.path.isdir(destination_path) or not os.access(destination_path, os.W_OK):
+                if not os.path.isdir(destination_path) or not os.access(destination_path, os.W_OK):
                     sys.stderr.write('download: %s exist and is not a writable directory\n' % destination_path)
                     return
                 else:
@@ -200,7 +203,7 @@ def _upload_directory(client, directory_path, current_directory):
             f = client.folders.create(sub_entity, current_directory.folder_id)
             new_folder = _Folder(f.id, current_directory, f.name)
             sub_folders.append(new_folder)
-            new_folder.sub_folders.append(_upload_directory(full_path, new_folder))
+            new_folder.sub_folders.extend(_upload_directory(client, full_path, new_folder))
     _load_files_if_necessary(client, current_directory, True)
     return sub_folders
 
@@ -210,14 +213,15 @@ def _create_local_directory(destination_path):
 
 
 def _download_directory(client, folder, destination_path):
-    _load_files_if_necessary(folder)
+    _load_files_if_necessary(client, folder)
     for sub_file in folder.files:
-        client.files.download(sub_file.downloadUrl, os.path.join(destination_path, sub_file.name))
+        file_info = client.files.get(sub_file.id)
+        client.files.download(file_info.downloadUrl, os.path.join(destination_path, sub_file.name))
     for sub_folder in folder.sub_folders:
         sub_folder_path = os.path.join(destination_path, sub_folder.name)
         if not os.path.exists(sub_folder_path):
             _create_local_directory(sub_folder_path)
-        elif not os.path.isdir(sub_folder_path) or not os.access(sub_folder_path, os.W_OK):
+        if not os.path.isdir(sub_folder_path) or not os.access(sub_folder_path, os.W_OK):
             sys.stderr.write('download: %s exist and is not a writable directory\n' % sub_folder_path)
             return
         else:
