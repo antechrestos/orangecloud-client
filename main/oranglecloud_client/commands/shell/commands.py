@@ -2,7 +2,7 @@ import logging
 import os
 import stat
 import sys
-import json
+
 _logger = logging.getLogger(__name__)
 
 _root = None
@@ -98,11 +98,33 @@ def upload(client, *args):
         client.files.upload(args[0], _current_folder.folder_id)
         _load_files_if_necessary(client, _current_folder, True)
     elif os.path.isdir(args[0]):
-        folders_created = _upload_directory(client, args[0], _current_folder)
-        _current_folder.sub_folders.append(folders_created)
+        _upload_directory(client, args[0], _current_folder)
     else:
         sys.stderr.write('upload: Bad system file, must be either a directory or a file: %s\n' % args[0])
         return
+
+
+def rm(client, *args):
+    global _current_folder
+    if len(args) != 1:
+        sys.stderr.write('rm <file/folder>\n')
+        return
+    else:
+        _load_files_if_necessary(client, _current_folder)
+        entity_name = args[0]
+        for sub_file in _current_folder.files:
+            if sub_file.name == entity_name:
+                client.files.delete(sub_file.id)
+                _load_files_if_necessary(client, _current_folder, True)
+                return
+        idx = 0
+        for sub_directory in _current_folder.sub_folders:
+            if sub_directory.name == entity_name:
+                client.folders.delete(sub_directory.folder_id)
+                _current_folder.sub_folders.pop(idx)
+                return
+            idx += 1
+        sys.stderr.write('rm: File/Folder not found: %s\n' % args[0])
 
 
 def download(client, *args):
@@ -194,18 +216,15 @@ def get_path():
 
 
 def _upload_directory(client, directory_path, current_directory):
-    sub_folders = []
+    f = client.folders.create(os.path.basename(directory_path), current_directory.folder_id)
+    folder_created = _Folder(f.id, current_directory, f.name)
     for sub_entity in os.listdir(directory_path):
         full_path = os.path.join(directory_path, sub_entity)
         if os.path.isfile(full_path):
-            client.files.upload(full_path, current_directory.folder_id)
+            client.files.upload(full_path, folder_created.folder_id)
         elif os.path.isdir(full_path):
-            f = client.folders.create(sub_entity, current_directory.folder_id)
-            new_folder = _Folder(f.id, current_directory, f.name)
-            sub_folders.append(new_folder)
-            new_folder.sub_folders.extend(_upload_directory(client, full_path, new_folder))
-    _load_files_if_necessary(client, current_directory, True)
-    return sub_folders
+            _upload_directory(client, full_path, folder_created)
+    current_directory.sub_folders.append(folder_created)
 
 
 def _create_local_directory(destination_path):

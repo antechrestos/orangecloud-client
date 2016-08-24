@@ -1,7 +1,7 @@
 import sys
 
-from oranglecloud_client.commands.shell.commands import cd, ls, mkdir, upload, download, freespace, reload_cache, pwd, \
-    get_path
+from oranglecloud_client.commands.shell.commands import cd, ls, mkdir, upload, rm, download, freespace, reload_cache, \
+    pwd, get_path
 from oranglecloud_client.commands.shell.parser import parse_line, InvalidSynthax
 
 
@@ -9,7 +9,7 @@ def launch_interactive_shell(client):
     ask_exit = False
     reload_cache(client)
     commands_mapping = dict(cd=cd, ls=ls, mkdir=mkdir, upload=upload, download=download, freespace=freespace,
-                            reload_cache=reload_cache, pwd=pwd)
+                            reload_cache=reload_cache, pwd=pwd, rm=rm)
     sys.stdout.write('''
 Welcome to the orangecloud shell. Type \'help\' to know all the available commands
 ''')
