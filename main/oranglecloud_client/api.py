@@ -1,14 +1,14 @@
+import httplib
 import json
 import logging
-import httplib
 from os import environ
 
 from oauth2_client.credentials_manager import CredentialManager, ServiceInformation
 
 from oranglecloud_client import URL_API
+from oranglecloud_client.files import Files
 from oranglecloud_client.folders import Folders
 from oranglecloud_client.freespace import Freespace
-from oranglecloud_client.files import Files
 
 _logger = logging.getLogger(__name__)
 
@@ -56,7 +56,10 @@ class ApiManager(CredentialManager):
         if response.status_code == httplib.UNAUTHORIZED:
             try:
                 json_data = response.json()
-                return json_data.get('message', '') == 'Invalid credentials'
+                error = json_data.get('error')
+                # {"error":{"code":"PDK_RP_0004","label":"INVALID_TOKEN","details":"OIDC rejected the token"}}
+                return json_data.get('message', '') == 'Invalid credentials' \
+                       or error is not None and error.get('label') == 'INVALID_TOKEN'
             except:
                 return False
         else:
