@@ -1,6 +1,7 @@
 #!/usr/bin/python2.7
 import logging
 import os
+import json
 from argparse import ArgumentParser
 
 from oranglecloud_client.commands.command_client import load_client
@@ -14,13 +15,17 @@ def _mkdir(client, arg):
 
 def _ls(client, arg):
     if arg.ls_dir:
-        response = client.folders.get(arg.id[0])
-        for sub_folder in response.subFolders:
+        if arg.id == 'root':
+            response = client.folders.get(arg.id[0])
+        else:
+            response = client.folders.get()
+        print json.dumps(response)
+        for sub_folder in response.subfolders:
             print '%s/ - %s' % (sub_folder.name, sub_folder.id)
         for inner_file in response.files:
             print '%s - %s' % (inner_file.name, inner_file.id)
     else:
-        response = client.files.get(arg.id[0])
+        response = client.files.get(arg.id)
         print '%s\r%d\t%s' % (response.name, response.size, response.creationDate)
 
 
@@ -64,7 +69,7 @@ def main():
     # ls
     ls_parser = subparsers.add_parser('ls', help='List a directory/display info of a file')
     ls_parser.add_argument('-r', action='store_true', dest='ls_dir', default=False, help='Flag to list a directory')
-    ls_parser.add_argument('id', metavar='id', nargs=1, help='File/Folder id')
+    ls_parser.add_argument('id', help='File/Folder id (use \'roo\' for root)')
 
 
     # freespace

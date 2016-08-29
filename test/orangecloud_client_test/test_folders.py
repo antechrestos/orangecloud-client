@@ -31,9 +31,9 @@ class FoldersTest(unittest.TestCase):
         self.assertEqual('root', root.name)
         self.assertEqual(1, len(root.files))
         self.assertEqual('file-root', root.files[0].id)
-        self.assertEqual(1, len(root.subFolders))
-        self.assertEqual('first_folder', root.subFolders[0].id)
-        self.assertEqual('root-id', root.subFolders[0].parentId)
+        self.assertEqual(1, len(root.subfolders))
+        self.assertEqual('first_folder', root.subfolders[0].id)
+        self.assertEqual('root-id', root.subfolders[0].parentId)
 
     def test_get_folder(self):
         self.client.get.return_value = mock_api_response('/folders/folder-id',
@@ -48,9 +48,9 @@ class FoldersTest(unittest.TestCase):
         self.assertEqual('root-id', folder.parentId)
         self.assertEqual(1, len(folder.files))
         self.assertEqual('file-id', folder.files[0].id)
-        self.assertEqual(1, len(folder.subFolders))
-        self.assertEqual('subfolder-id', folder.subFolders[0].id)
-        self.assertEqual('folder-id', folder.subFolders[0].parentId)
+        self.assertEqual(1, len(folder.subfolders))
+        self.assertEqual('subfolder-id', folder.subfolders[0].id)
+        self.assertEqual('folder-id', folder.subfolders[0].parentId)
 
     def test_create(self):
         self.client.post.return_value = mock_api_response('/folders',
@@ -65,7 +65,7 @@ class FoldersTest(unittest.TestCase):
         self.assertEqual('folder-name', folder.name)
         self.assertEqual('parent-id', folder.parentId)
         self.assertEqual(0, len(folder.files))
-        self.assertEqual(0, len(folder.subFolders))
+        self.assertEqual(0, len(folder.subfolders))
 
     def test_copy(self):
         self.client.post.return_value = mock_api_response('/folders/folder-id',
