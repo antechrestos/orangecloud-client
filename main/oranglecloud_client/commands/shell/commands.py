@@ -133,7 +133,7 @@ def download(client, *args):
         sys.stderr.write('download <subfile name> <destination file path>\n')
         return
     elif not os.path.isdir(args[1]):
-        sys.stderr.write('download: invalid directory\n' % args[1])
+        sys.stderr.write('download: invalid directory: %s\n' % args[1])
         return
     elif args[0] == '.':
         _download_directory(client, _current_folder, args[1])

@@ -16,17 +16,16 @@ def _mkdir(client, arg):
 def _ls(client, arg):
     if arg.ls_dir:
         if arg.id == 'root':
-            response = client.folders.get(arg.id[0])
-        else:
             response = client.folders.get()
-        print json.dumps(response)
+        else:
+            response = client.folders.get(arg.id)
         for sub_folder in response.subfolders:
             print '%s/ - %s' % (sub_folder.name, sub_folder.id)
         for inner_file in response.files:
             print '%s - %s' % (inner_file.name, inner_file.id)
     else:
         response = client.files.get(arg.id)
-        print '%s\r%d\t%s' % (response.name, response.size, response.creationDate)
+        print '%s\t%d\t%s' % (response.name, response.size, response.creationDate)
 
 
 def _rm(client, arg):
@@ -37,7 +36,6 @@ def _rm(client, arg):
 
 
 def _freespace(client, arg):
-    print "_freespace"
     response = client.freespace.get()
     print response.freespace
 
@@ -69,7 +67,7 @@ def main():
     # ls
     ls_parser = subparsers.add_parser('ls', help='List a directory/display info of a file')
     ls_parser.add_argument('-r', action='store_true', dest='ls_dir', default=False, help='Flag to list a directory')
-    ls_parser.add_argument('id', help='File/Folder id (use \'roo\' for root)')
+    ls_parser.add_argument('id', help='File/Folder id (use \'root\' for root)')
 
 
     # freespace
@@ -102,8 +100,6 @@ def main():
             launch_interactive_shell(client)
         else:
             # all functions are prefixed with underscore
-            print globals().keys()
-            print arguments.action
             globals()['_%s' % arguments.action](client, arguments)
 
 

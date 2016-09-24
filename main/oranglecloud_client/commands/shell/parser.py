@@ -43,5 +43,4 @@ def _split_parameters(parameters):
         raise InvalidSynthax('Unfinished quoting: %s' % parameters)
     if len(current_parameter) > 0:
         result.append(''.join(current_parameter))
-    print '_split_parameters - %s => %s' % (parameters, str(result))
     return tuple(result)

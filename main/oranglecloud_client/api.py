@@ -12,6 +12,8 @@ from oranglecloud_client.freespace import Freespace
 
 _logger = logging.getLogger(__name__)
 
+logging.getLogger("requests").setLevel(logging.WARNING)
+
 
 class InvalidStatusCode(Exception):
     def __init__(self, status_code, body):
