@@ -28,7 +28,7 @@ setup(name=package_name,
       author='Benjamin Einaudi',
       author_email='antechrestos@gmail.com',
       description='A client library for Orange cloud',
-      long_description=open('README.md').read(),
+      long_description=open('README.rst').read(),
       url='http://github.com/antechrestos/OAuth2Client',
       classifiers=[
           "Programming Language :: Python",
@@ -37,6 +37,15 @@ setup(name=package_name,
           "Programming Language :: Python :: 2.7",
           "Topic :: Communications",
       ],
+      entry_points={
+          'console_scripts': [
+              'orangecloud-client = %s.commands.main:main' % package_directory,
+          ]
+      },
       package_dir={package_directory: '%s/%s' % (src_dir, package_directory)},
       install_requires=[requirement.rstrip(' \r\n') for requirement in open('requirements.txt').readlines()],
+      tests_require=[
+          'mock==2.0.0',
+      ],
+      test_suite='test',
       )
