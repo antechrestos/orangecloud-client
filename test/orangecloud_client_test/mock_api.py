@@ -1,7 +1,7 @@
 from json import load
 from os import path
 
-from oranglecloud_client import URL_API, URL_UPLOAD, BASE_URI
+from orangecloud_client import URL_API, URL_UPLOAD, BASE_URI
 from .fake_requests import MockResponse
 
 

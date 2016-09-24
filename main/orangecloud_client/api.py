@@ -5,10 +5,10 @@ from os import environ
 
 from oauth2_client.credentials_manager import CredentialManager, ServiceInformation
 
-from oranglecloud_client import URL_API
-from oranglecloud_client.files import Files
-from oranglecloud_client.folders import Folders
-from oranglecloud_client.freespace import Freespace
+from orangecloud_client import URL_API
+from orangecloud_client.files import Files
+from orangecloud_client.folders import Folders
+from orangecloud_client.freespace import Freespace
 
 _logger = logging.getLogger(__name__)
 

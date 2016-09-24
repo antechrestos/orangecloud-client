@@ -1,6 +1,6 @@
 import unittest
 
-from oranglecloud_client.api import ApiManager
+from orangecloud_client.api import ApiManager
 
 
 class ApiManagerTest(unittest.TestCase):

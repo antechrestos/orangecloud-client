@@ -1,6 +1,6 @@
 import unittest
 
-from oranglecloud_client.commands.shell.parser import parse_line, InvalidSynthax
+from orangecloud_client.commands.shell.parser import parse_line, InvalidSynthax
 
 
 class TestParser(unittest.TestCase):

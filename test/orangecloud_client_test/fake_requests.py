@@ -2,7 +2,7 @@ import httplib
 import os
 from json import loads
 
-from oranglecloud_client import URL_API, URL_UPLOAD, BASE_URI
+from orangecloud_client import URL_API, URL_UPLOAD, BASE_URI
 
 
 class MockResponse(object):

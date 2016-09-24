@@ -4,7 +4,7 @@ import unittest
 import mock
 
 from orangecloud_client_test.fake_requests import mock_api_response
-from oranglecloud_client.folders import Folders
+from orangecloud_client.folders import Folders
 
 
 class FoldersTest(unittest.TestCase):

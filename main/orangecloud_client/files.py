@@ -3,8 +3,8 @@ from mimetypes import guess_type
 import json
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
-from oranglecloud_client import URL_UPLOAD, BASE_URI
-from oranglecloud_client.abstract_domain import AbstractDomain
+from orangecloud_client import URL_UPLOAD, BASE_URI
+from orangecloud_client.abstract_domain import AbstractDomain
 
 
 class Files(AbstractDomain):

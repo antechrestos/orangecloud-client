@@ -4,8 +4,8 @@ import os
 import json
 from argparse import ArgumentParser
 
-from oranglecloud_client.commands.command_client import load_client
-from oranglecloud_client.commands.shell import launch_interactive_shell
+from orangecloud_client.commands.command_client import load_client
+from orangecloud_client.commands.shell import launch_interactive_shell
 
 
 def _mkdir(client, arg):

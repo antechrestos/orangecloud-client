@@ -4,7 +4,7 @@ import unittest
 import mock
 
 from orangecloud_client_test.fake_requests import mock_api_response
-from oranglecloud_client.freespace import Freespace
+from orangecloud_client.freespace import Freespace
 
 
 class FreespaceTest(unittest.TestCase):

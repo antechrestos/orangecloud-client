@@ -1,8 +1,8 @@
 import sys
 
-from oranglecloud_client.commands.shell.commands import cd, ls, mkdir, upload, rm, download, freespace, reload_cache, \
+from orangecloud_client.commands.shell.commands import cd, ls, mkdir, upload, rm, download, freespace, reload_cache, \
     pwd, get_path
-from oranglecloud_client.commands.shell.parser import parse_line, InvalidSynthax
+from orangecloud_client.commands.shell.parser import parse_line, InvalidSynthax
 
 
 def launch_interactive_shell(client):

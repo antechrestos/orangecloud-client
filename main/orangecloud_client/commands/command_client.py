@@ -5,7 +5,7 @@ import stat
 import random
 import logging
 from oauth2_client.credentials_manager import OAuthError
-from oranglecloud_client.api import ApiManager
+from orangecloud_client.api import ApiManager
 
 _configuration_directory = os.path.join(os.path.expanduser('~'), '.orangecloud-client')
 _configuration_file = os.path.join(_configuration_directory, 'configuration.json')

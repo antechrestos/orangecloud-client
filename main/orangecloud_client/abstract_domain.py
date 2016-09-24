@@ -1,8 +1,8 @@
 import json
 import logging
 
-from oranglecloud_client import URL_API, BASE_URI
-from oranglecloud_client.error_handling import raise_error, raise_response_error
+from orangecloud_client import URL_API, BASE_URI
+from orangecloud_client.error_handling import raise_error, raise_response_error
 
 
 class JsonObject(dict):
@@ -15,7 +15,7 @@ class AbstractDomain(object):
     def __init__(self, client, domain_name):
         self.client = client
         self.domain_name = domain_name
-        self._logger = logging.getLogger('oranglecloud_client.%s' % domain_name)
+        self._logger = logging.getLogger('orangecloud_client.%s' % domain_name)
 
     def _raise_error(self, msg, *args):
         raise_error(self.domain_name, msg, *args)

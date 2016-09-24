@@ -1,4 +1,4 @@
-from oranglecloud_client.abstract_domain import AbstractDomain
+from orangecloud_client.abstract_domain import AbstractDomain
 
 
 class Freespace(AbstractDomain):

@@ -6,7 +6,7 @@ import mock
 from mock import mock
 
 from orangecloud_client_test.fake_requests import mock_api_response, mock_upload_response, mock_response
-from oranglecloud_client.files import Files
+from orangecloud_client.files import Files
 
 
 class MockFile(object):
@@ -100,9 +100,9 @@ class FilesTest(unittest.TestCase):
         file_path = path.join(path.dirname(__file__), '..', 'fixtures', 'files', file_name)
         folder_id = 'folder-id'
 
-        @mock.patch('oranglecloud_client.files.guess_type', return_value=('image/jpeg', 'binary'))
+        @mock.patch('orangecloud_client.files.guess_type', return_value=('image/jpeg', 'binary'))
         @mock.patch('__builtin__.open', spec=open, return_value=MockFile())
-        @mock.patch('oranglecloud_client.files.MultipartEncoder', return_value=mock.Mock())
+        @mock.patch('orangecloud_client.files.MultipartEncoder', return_value=mock.Mock())
         def fire_test(mock_multipart_encoder, mock_open, _):
             data = mock_multipart_encoder()
             data.content_type = 'upload content type'
