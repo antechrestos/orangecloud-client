@@ -6,11 +6,13 @@ def parse_line(line):
     line = line.rstrip('\r\n').lstrip(' \t').replace('\t', ' ')
     idx_first_space = line.find(' ')
     if idx_first_space == -1:
-        return line, ()
+        return [line]
     else:
         command_name = line[:idx_first_space]
         parameters = line[idx_first_space:].lstrip(' ')
-        return command_name, _split_parameters(parameters)
+        result = [command_name]
+        result.extend(_split_parameters(parameters))
+        return result
 
 
 def _split_parameters(parameters):
@@ -43,4 +45,4 @@ def _split_parameters(parameters):
         raise InvalidSynthax('Unfinished quoting: %s' % parameters)
     if len(current_parameter) > 0:
         result.append(''.join(current_parameter))
-    return tuple(result)
+    return result
