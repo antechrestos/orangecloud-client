@@ -19,10 +19,9 @@ class _Folder(object):
         self.files = None
 
 
-def cd(args):
+def cd(path):
     global _current_folder
     global _root
-    path = args.name
     path_walked = []
     if path[0] == '/':
         _current_folder = _root
@@ -46,7 +45,7 @@ def cd(args):
         path_walked.append(sub_path)
 
 
-def ls(client, args):
+def ls(client, name):
     global _current_folder
 
     def print_folder(folder):
@@ -56,50 +55,47 @@ def ls(client, args):
             print '%s' % entity.name
 
     _load_files_if_necessary(client, _current_folder)
-    if args.name is None:
+    if name is None:
         print_folder(_current_folder)
     else:
-        entity_name = args.name
         for sub_folder in _current_folder.sub_folders:
-            if sub_folder.name == entity_name:
+            if sub_folder.name == name:
                 _load_files_if_necessary(client, sub_folder)
                 print_folder(sub_folder)
                 return
         for sub_file in _current_folder.files:
-            if sub_file.name == entity_name:
+            if sub_file.name == name:
                 print '%s - %s - %d' % (sub_file.name, sub_file.creationDate, sub_file.size)
                 return
-        sys.stderr.write('ls: File/Folder not found: %s\n' % entity_name)
+        sys.stderr.write('ls: File/Folder not found: %s\n' % name)
 
 
-def mkdir(client, args):
+def mkdir(client, name):
     global _current_folder
-    f = client.folders.create(args.name, _current_folder.folder_id)
+    f = client.folders.create(name, _current_folder.folder_id)
     _current_folder.sub_folders.append(_Folder(f.id, _current_folder, f.name))
 
 
-def rm(client, args):
+def rm(client, name):
     global _current_folder
     _load_files_if_necessary(client, _current_folder)
-    entity_name = args.name
     for sub_file in _current_folder.files:
-        if sub_file.name == entity_name:
+        if sub_file.name == name:
             client.files.delete(sub_file.id)
             _load_files_if_necessary(client, _current_folder, True)
             return
     idx = 0
     for sub_directory in _current_folder.sub_folders:
-        if sub_directory.name == entity_name:
+        if sub_directory.name == name:
             client.folders.delete(sub_directory.folder_id)
             _current_folder.sub_folders.pop(idx)
             return
         idx += 1
-    sys.stderr.write('rm: File/Folder not found: %s\n' % entity_name)
+    sys.stderr.write('rm: File/Folder not found: %s\n' % name)
 
 
-def upload(client, args):
+def upload(client, input_path):
     global _current_folder
-    input_path = args.input
     if os.path.isfile(input_path):
         client.files.upload(input_path, _current_folder.folder_id)
         _load_files_if_necessary(client, _current_folder, True)
@@ -110,25 +106,23 @@ def upload(client, args):
         return
 
 
-def download(client, args):
+def download(client, output_path, name):
     global _current_folder
-    entity_name = args.name
-    output_path = args.output
     if not os.path.isdir(output_path):
         sys.stderr.write('download: invalid directory: %s\n' % output_path)
         return
-    elif entity_name == '.':
-        _download_directory(client, _current_folder, args[1])
+    elif name == '.':
+        _download_directory(client, _current_folder, output_path)
     else:
         _load_files_if_necessary(client, _current_folder)
         for sub_file in _current_folder.files:
-            if sub_file.name == entity_name:
+            if sub_file.name == name:
                 file_info = client.files.get(sub_file.id)
                 client.files.download(file_info.downloadUrl, os.path.join(output_path, sub_file.name))
                 return
 
         for sub_directory in _current_folder.sub_folders:
-            if sub_directory.name == entity_name:
+            if sub_directory.name == name:
                 destination_path = os.path.join(output_path, sub_directory.name)
                 if not os.path.exists(destination_path):
                     _create_local_directory(destination_path)
@@ -138,10 +132,10 @@ def download(client, args):
                 else:
                     _download_directory(client, sub_directory, destination_path)
                     return
-        sys.stderr.write('download: File/Folder not found: %s\n' % entity_name)
+        sys.stderr.write('download: File/Folder not found: %s\n' % name)
 
 
-def freespace(client, _):
+def freespace(client):
     freespace_in_octet = client.freespace.get().freespace
     print freespace_in_octet
     one_ko = 1024
@@ -157,7 +151,7 @@ def freespace(client, _):
         print '%0.1f Go' % (float(freespace_in_octet) / one_go)
 
 
-def reload_cache(client, _):
+def reload_cache(client):
     global _root
     global _current_folder
     flat_hierarchy = client.folders.get(flat=True)
@@ -182,7 +176,7 @@ def reload_cache(client, _):
             _current_folder = root
 
 
-def pwd(_):
+def pwd():
     print get_path()
 
 
