@@ -38,6 +38,10 @@ sub_parser.add_argument('name', action=StorePositional, help='The sub-folder/fil
 subparsers.add_parser('freespace', help='Display freespace')
 
 sub_parser = subparsers.add_parser('upload', help='Upload a file')
+sub_parser.add_argument('--extensions', action=StorePositional, dest='extensions', type=str,
+                        required=False,
+                        default=None,
+                        help='When input_path is a directory, file extensions to keep separated by \',\'.')
 sub_parser.add_argument('input_path', action=StorePositional, help='The file/folder path')
 
 sub_parser = subparsers.add_parser('download', help='Download a file/directory')
@@ -48,7 +52,6 @@ subparsers.add_parser('help', help='Prints help')
 subparsers.add_parser('pwd', help='Display current path')
 subparsers.add_parser('reload_cache', help='Reload local cache')
 subparsers.add_parser('exit', help='Exit shell')
-
 
 
 def launch_interactive_shell(client):

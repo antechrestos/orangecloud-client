@@ -94,13 +94,21 @@ def rm(client, name):
     sys.stderr.write('rm: File/Folder not found: %s\n' % name)
 
 
-def upload(client, input_path):
+def upload(client, input_path, extensions=None):
     global _current_folder
+    filter_extensions_splitted = [] if extensions is None else extensions.split(',')
+
+    def keep_file(file_name):
+        dot_position = file_name.rfind('.')
+        return len(filter_extensions_splitted) == 0 \
+               or dot_position >= 0 and file_name[dot_position + 1:] in filter_extensions_splitted \
+               or dot_position == -1 and '' in filter_extensions_splitted
+
     if os.path.isfile(input_path):
         client.files.upload(input_path, _current_folder.folder_id)
         _load_files_if_necessary(client, _current_folder, True)
     elif os.path.isdir(input_path):
-        _upload_directory(client, input_path, _current_folder)
+        _upload_directory(client, input_path, _current_folder, keep_file)
     else:
         sys.stderr.write('upload: Bad system file, must be either a directory or a file: %s\n' % input_path)
         return
@@ -191,15 +199,15 @@ def get_path():
     return '/%s' % '/'.join(result)
 
 
-def _upload_directory(client, directory_path, current_directory):
+def _upload_directory(client, directory_path, current_directory, keep_file):
     f = client.folders.create(os.path.basename(directory_path), current_directory.folder_id)
     folder_created = _Folder(f.id, current_directory, f.name)
     for sub_entity in os.listdir(directory_path):
         full_path = os.path.join(directory_path, sub_entity)
-        if os.path.isfile(full_path):
+        if os.path.isfile(full_path) and keep_file(sub_entity):
             client.files.upload(full_path, folder_created.folder_id)
         elif os.path.isdir(full_path):
-            _upload_directory(client, full_path, folder_created)
+            _upload_directory(client, full_path, folder_created, keep_file)
     current_directory.sub_folders.append(folder_created)
 
 
