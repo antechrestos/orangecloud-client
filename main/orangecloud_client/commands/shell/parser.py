@@ -3,7 +3,7 @@ class InvalidSynthax(Exception):
 
 
 def parse_line(line):
-    line = line.rstrip('\r\n').lstrip(' \t').replace('\t', ' ')
+    line = line.rstrip('\r\n').strip(' \t').replace('\t', ' ')
     idx_first_space = line.find(' ')
     if idx_first_space == -1:
         return [line]

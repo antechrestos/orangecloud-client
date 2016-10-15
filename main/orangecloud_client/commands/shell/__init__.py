@@ -1,5 +1,6 @@
 import sys
 import traceback
+import subprocess
 from argparse import ArgumentParser, Action
 
 from orangecloud_client.commands.shell.commands import cd, ls, mkdir, upload, rm, download, freespace, reload_cache, \
@@ -74,21 +75,26 @@ Welcome to the orangecloud shell. Type \'help\' to know all the available comman
     while not ask_exit:
         sys.stdout.write('%s >' % get_path())
         try:
-            namespace = parser.parse_args(parse_line(sys.stdin.readline()))
-            action, arguments = namespace.action, {name: value for name, value in
-                                                   getattr(namespace, StorePositional.ORDER_ARGS_ATTRIBUTE_NAME, [])}
-            if action == 'exit':
-                break
-            elif action == 'help':
-                parser.print_help()
+            line_words = parse_line(sys.stdin.readline())
+            if line_words[0].startswith('!'):
+                line_words[0] = line_words[0][1:]
+                subprocess.call(line_words)
             else:
-                command, need_client = commands_mapping.get(action)
-                if command is None:
+                namespace = parser.parse_args(line_words)
+                action, arguments = namespace.action, {name: value for name, value in
+                                                       getattr(namespace, StorePositional.ORDER_ARGS_ATTRIBUTE_NAME, [])}
+                if action == 'exit':
+                    break
+                elif action == 'help':
                     parser.print_help()
-                elif need_client:
-                    command(client, **arguments)
                 else:
-                    command(**arguments)
+                    command, need_client = commands_mapping.get(action)
+                    if command is None:
+                        parser.print_help()
+                    elif need_client:
+                        command(client, **arguments)
+                    else:
+                        command(**arguments)
         except BaseException, ex:
             type_exc = type(ex)
             if type_exc == InvalidSynthax:

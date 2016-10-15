@@ -107,6 +107,7 @@ def upload(client, input_path, extensions=None):
     if os.path.isfile(input_path):
         client.files.upload(input_path, _current_folder.folder_id)
         _load_files_if_necessary(client, _current_folder, True)
+        print '%s OK' % input_path
     elif os.path.isdir(input_path):
         _upload_directory(client, input_path, _current_folder, keep_file)
     else:
@@ -125,8 +126,9 @@ def download(client, output_path, name):
         _load_files_if_necessary(client, _current_folder)
         for sub_file in _current_folder.files:
             if sub_file.name == name:
-                file_info = client.files.get(sub_file.id)
-                client.files.download(file_info.downloadUrl, os.path.join(output_path, sub_file.name))
+                file_output_path = os.path.join(output_path, sub_file.name)
+                client.files.download(sub_file.downloadUrl, file_output_path)
+                print '%s OK' % file_output_path
                 return
 
         for sub_directory in _current_folder.sub_folders:
@@ -162,7 +164,7 @@ def freespace(client):
 def reload_cache(client):
     global _root
     global _current_folder
-    flat_hierarchy = client.folders.get(flat=True)
+    flat_hierarchy = client.folders.get(flat=True, tree=True)
     root = _Folder(flat_hierarchy.id, None, flat_hierarchy.name)
     folders_by_id = {f.id: _Folder(f.id, None, f.name) for f in flat_hierarchy.subfolders}
     folders_by_id[root.folder_id] = root
@@ -182,6 +184,8 @@ def reload_cache(client):
             _current_folder = _current_folder.parent
         if _current_folder is None:
             _current_folder = root
+        else:
+            _current_folder = folders_by_id[_current_folder.folder_id]
 
 
 def pwd():
@@ -206,6 +210,7 @@ def _upload_directory(client, directory_path, current_directory, keep_file):
         full_path = os.path.join(directory_path, sub_entity)
         if os.path.isfile(full_path) and keep_file(sub_entity):
             client.files.upload(full_path, folder_created.folder_id)
+            print '%s OK' % full_path
         elif os.path.isdir(full_path):
             _upload_directory(client, full_path, folder_created, keep_file)
     current_directory.sub_folders.append(folder_created)
@@ -218,8 +223,9 @@ def _create_local_directory(destination_path):
 def _download_directory(client, folder, destination_path):
     _load_files_if_necessary(client, folder)
     for sub_file in folder.files:
-        file_info = client.files.get(sub_file.id)
-        client.files.download(file_info.downloadUrl, os.path.join(destination_path, sub_file.name))
+        file_output_path = os.path.join(destination_path, sub_file.name)
+        client.files.download(sub_file.downloadUrl, file_output_path)
+        print '%s OK' % file_output_path
     for sub_folder in folder.sub_folders:
         sub_folder_path = os.path.join(destination_path, sub_folder.name)
         if not os.path.exists(sub_folder_path):
@@ -233,4 +239,4 @@ def _download_directory(client, folder, destination_path):
 
 def _load_files_if_necessary(client, folder, force=False):
     if folder.files is None or force:
-        folder.files = client.folders.get(folder.folder_id).files
+        folder.files = client.folders.get(folder.folder_id, showthumbnails=True).files
