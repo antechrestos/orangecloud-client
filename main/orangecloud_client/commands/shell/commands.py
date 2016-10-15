@@ -33,8 +33,9 @@ def cd(path):
                 _current_folder = _current_folder.parent
             elif sub_path != '.':
                 found = False
+                sub_path_encoded = unicode(sub_path, "utf-8", errors="ignore")
                 for sub_folder in _current_folder.sub_folders:
-                    if sub_path == sub_folder.name:
+                    if sub_path_encoded == sub_folder.name:
                         _current_folder = sub_folder
                         found = True
                         break
@@ -58,13 +59,14 @@ def ls(client, name):
     if name is None:
         print_folder(_current_folder)
     else:
+        name_encoded = unicode(name, "utf-8", errors="ignore")
         for sub_folder in _current_folder.sub_folders:
-            if sub_folder.name == name:
+            if sub_folder.name == name_encoded:
                 _load_files_if_necessary(client, sub_folder)
                 print_folder(sub_folder)
                 return
         for sub_file in _current_folder.files:
-            if sub_file.name == name:
+            if sub_file.name == name_encoded:
                 print '%s - %s - %d' % (sub_file.name, sub_file.creationDate, sub_file.size)
                 return
         sys.stderr.write('ls: File/Folder not found: %s\n' % name)
@@ -78,15 +80,16 @@ def mkdir(client, name):
 
 def rm(client, name):
     global _current_folder
+    name_encoded = unicode(name, "utf-8", errors="ignore")
     _load_files_if_necessary(client, _current_folder)
     for sub_file in _current_folder.files:
-        if sub_file.name == name:
+        if sub_file.name == name_encoded:
             client.files.delete(sub_file.id)
             _load_files_if_necessary(client, _current_folder, True)
             return
     idx = 0
     for sub_directory in _current_folder.sub_folders:
-        if sub_directory.name == name:
+        if sub_directory.name == name_encoded:
             client.folders.delete(sub_directory.folder_id)
             _current_folder.sub_folders.pop(idx)
             return
@@ -105,10 +108,14 @@ def upload(client, input_path, extensions=None):
                or dot_position == -1 and '' in filter_extensions_splitted
 
     if os.path.isfile(input_path):
+        _load_files_if_necessary(client, _current_folder)
         _log_file_activity(input_path)
-        client.files.upload(input_path, _current_folder.folder_id)
-        _load_files_if_necessary(client, _current_folder, True)
-        print 'OK'
+        if _is_file_present(_current_folder, os.path.basename(input_path)):
+            print 'ALREADY EXISTS'
+        else:
+            client.files.upload(input_path, _current_folder.folder_id)
+            _load_files_if_necessary(client, _current_folder, True)
+            print 'OK'
     elif os.path.isdir(input_path):
         _upload_directory(client, input_path, _current_folder, keep_file)
     else:
@@ -125,8 +132,9 @@ def download(client, output_path, name):
         _download_directory(client, _current_folder, output_path)
     else:
         _load_files_if_necessary(client, _current_folder)
+        name_encoded = unicode(name, "utf-8", errors="ignore")
         for sub_file in _current_folder.files:
-            if sub_file.name == name:
+            if sub_file.name == name_encoded:
                 file_output_path = os.path.join(output_path, sub_file.name)
                 _log_file_activity(file_output_path)
                 client.files.download(sub_file.downloadUrl, file_output_path)
@@ -206,20 +214,42 @@ def get_path():
 
 
 def _upload_directory(client, directory_path, current_directory, keep_file):
-    f = client.folders.create(os.path.basename(directory_path), current_directory.folder_id)
-    folder_created = _Folder(f.id, current_directory, f.name)
+    local_directory_name = os.path.basename(directory_path)
+    remote_directory = None
+    for sub_folder in current_directory.sub_folders:
+        if sub_folder.name == local_directory_name:
+            remote_directory = sub_folder
+            _load_files_if_necessary(client, remote_directory)
+            break
+    if remote_directory is None:
+        f = client.folders.create(os.path.basename(directory_path), current_directory.folder_id)
+        remote_directory = _Folder(f.id, current_directory, f.name)
+        current_directory.sub_folders.append(remote_directory)
+        remote_directory.files = []
     sub_folders = []
     for sub_entity in sorted(os.listdir(directory_path)):
         full_path = os.path.join(directory_path, sub_entity)
         if os.path.isfile(full_path) and keep_file(sub_entity):
             _log_file_activity(full_path)
-            client.files.upload(full_path, folder_created.folder_id)
-            print 'OK'
+            if _is_file_present(remote_directory, sub_entity):
+                print 'ALREADY EXISTS'
+            else:
+                client.files.upload(full_path, remote_directory.folder_id)
+                print 'OK'
         elif os.path.isdir(full_path):
             sub_folders.append(full_path)
+    _load_files_if_necessary(client, remote_directory, True)
     for sub_folder in sub_folders:
-        _upload_directory(client, sub_folder, folder_created, keep_file)
-    current_directory.sub_folders.append(folder_created)
+        _upload_directory(client, sub_folder, remote_directory, keep_file)
+
+
+def _is_file_present(remote_directory, sub_entity):
+    already_exists = False
+    for sub_file in remote_directory.files:
+        if sub_file.name == sub_entity:
+            already_exists = True
+            break
+    return already_exists
 
 
 def _create_local_directory(destination_path):

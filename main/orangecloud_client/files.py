@@ -1,6 +1,7 @@
 import os
 from mimetypes import guess_type
 import json
+import unicodedata
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from orangecloud_client import URL_UPLOAD, BASE_URI
@@ -54,14 +55,16 @@ class Files(AbstractDomain):
         self._debug('upload - %s(%s) => %s', file_name, mime_type,
                     folder_id if folder_id is not None else 'root')
         file_stats = os.stat(file_path)
-        description = dict(name=file_name, size=str(file_stats.st_size))
+        file_name_encoded = unicode(file_name, "utf-8", errors="ignore")
+        description = dict(name=file_name_encoded, size=str(file_stats.st_size))
         if folder_id is not None:
             description['folder'] = folder_id
+
         with open(file_path, 'rb') as f:
             uri = '/files/content'
             m = MultipartEncoder(
                 fields=dict(description=json.dumps(dict(description)),
-                            file=(file_name, f, mime_type))
+                            file=(file_name_encoded, f, mime_type))
             )
             response = self._call(self.client.post, '%s%s%s' % (URL_UPLOAD, BASE_URI, uri),
                                   data=m,
