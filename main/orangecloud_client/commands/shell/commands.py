@@ -208,14 +208,17 @@ def get_path():
 def _upload_directory(client, directory_path, current_directory, keep_file):
     f = client.folders.create(os.path.basename(directory_path), current_directory.folder_id)
     folder_created = _Folder(f.id, current_directory, f.name)
-    for sub_entity in os.listdir(directory_path):
+    sub_folders = []
+    for sub_entity in sorted(os.listdir(directory_path)):
         full_path = os.path.join(directory_path, sub_entity)
         if os.path.isfile(full_path) and keep_file(sub_entity):
             _log_file_activity(full_path)
             client.files.upload(full_path, folder_created.folder_id)
             print 'OK'
         elif os.path.isdir(full_path):
-            _upload_directory(client, full_path, folder_created, keep_file)
+            sub_folders.append(full_path)
+    for sub_folder in sub_folders:
+        _upload_directory(client, sub_folder, folder_created, keep_file)
     current_directory.sub_folders.append(folder_created)
 
 
