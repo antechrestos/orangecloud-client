@@ -105,9 +105,10 @@ def upload(client, input_path, extensions=None):
                or dot_position == -1 and '' in filter_extensions_splitted
 
     if os.path.isfile(input_path):
+        _log_file_activity(input_path)
         client.files.upload(input_path, _current_folder.folder_id)
         _load_files_if_necessary(client, _current_folder, True)
-        print '%s OK' % input_path
+        print 'OK'
     elif os.path.isdir(input_path):
         _upload_directory(client, input_path, _current_folder, keep_file)
     else:
@@ -127,8 +128,9 @@ def download(client, output_path, name):
         for sub_file in _current_folder.files:
             if sub_file.name == name:
                 file_output_path = os.path.join(output_path, sub_file.name)
+                _log_file_activity(file_output_path)
                 client.files.download(sub_file.downloadUrl, file_output_path)
-                print '%s OK' % file_output_path
+                print 'OK'
                 return
 
         for sub_directory in _current_folder.sub_folders:
@@ -209,8 +211,9 @@ def _upload_directory(client, directory_path, current_directory, keep_file):
     for sub_entity in os.listdir(directory_path):
         full_path = os.path.join(directory_path, sub_entity)
         if os.path.isfile(full_path) and keep_file(sub_entity):
+            _log_file_activity(full_path)
             client.files.upload(full_path, folder_created.folder_id)
-            print '%s OK' % full_path
+            print 'OK'
         elif os.path.isdir(full_path):
             _upload_directory(client, full_path, folder_created, keep_file)
     current_directory.sub_folders.append(folder_created)
@@ -224,8 +227,9 @@ def _download_directory(client, folder, destination_path):
     _load_files_if_necessary(client, folder)
     for sub_file in folder.files:
         file_output_path = os.path.join(destination_path, sub_file.name)
+        _log_file_activity(file_output_path)
         client.files.download(sub_file.downloadUrl, file_output_path)
-        print '%s OK' % file_output_path
+        print 'OK'
     for sub_folder in folder.sub_folders:
         sub_folder_path = os.path.join(destination_path, sub_folder.name)
         if not os.path.exists(sub_folder_path):
@@ -240,3 +244,8 @@ def _download_directory(client, folder, destination_path):
 def _load_files_if_necessary(client, folder, force=False):
     if folder.files is None or force:
         folder.files = client.folders.get(folder.folder_id, showthumbnails=True).files
+
+
+def _log_file_activity(file_path):
+    sys.stdout.write('%s ...' % file_path)
+    sys.stdout.flush()

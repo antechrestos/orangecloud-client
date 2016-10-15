@@ -1,7 +1,6 @@
 #!/usr/bin/python2.7
 import logging
 import os
-import json
 from argparse import ArgumentParser
 
 from orangecloud_client.commands.command_client import load_client
