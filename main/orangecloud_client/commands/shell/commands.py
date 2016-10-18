@@ -33,7 +33,7 @@ def cd(path):
                 _current_folder = _current_folder.parent
             elif sub_path != '.':
                 found = False
-                sub_path_encoded = unicode(sub_path, "utf-8", errors="ignore")
+                sub_path_encoded = _to_unicode(sub_path)
                 for sub_folder in _current_folder.sub_folders:
                     if sub_path_encoded == sub_folder.name:
                         _current_folder = sub_folder
@@ -50,16 +50,16 @@ def ls(client, name):
     global _current_folder
 
     def print_folder(folder):
-        for entity in folder.sub_folders:
-            print '%s/' % entity.name
-        for entity in folder.files:
-            print '%s' % entity.name
+        for entity_name in sorted([entity.name for entity in folder.sub_folders]):
+            print '%s/' % entity_name
+        for entity_name in sorted([entity.name for entity in folder.files]):
+            print '%s' % entity_name
 
     _load_files_if_necessary(client, _current_folder)
     if name is None:
         print_folder(_current_folder)
     else:
-        name_encoded = unicode(name, "utf-8", errors="ignore")
+        name_encoded = _to_unicode(name)
         for sub_folder in _current_folder.sub_folders:
             if sub_folder.name == name_encoded:
                 _load_files_if_necessary(client, sub_folder)
@@ -80,7 +80,7 @@ def mkdir(client, name):
 
 def rm(client, name):
     global _current_folder
-    name_encoded = unicode(name, "utf-8", errors="ignore")
+    name_encoded = _to_unicode(name)
     _load_files_if_necessary(client, _current_folder)
     for sub_file in _current_folder.files:
         if sub_file.name == name_encoded:
@@ -132,7 +132,7 @@ def download(client, output_path, name):
         _download_directory(client, _current_folder, output_path)
     else:
         _load_files_if_necessary(client, _current_folder)
-        name_encoded = unicode(name, "utf-8", errors="ignore")
+        name_encoded = _to_unicode(name)
         for sub_file in _current_folder.files:
             if sub_file.name == name_encoded:
                 file_output_path = os.path.join(output_path, sub_file.name)
@@ -215,14 +215,18 @@ def get_path():
 
 def _upload_directory(client, directory_path, current_directory, keep_file):
     local_directory_name = os.path.basename(directory_path)
+    if len(local_directory_name) == 0:
+        # Occurs if directory_path ends with /
+        local_directory_name = os.path.basename(os.path.dirname(directory_path))
+    encoded_directory_name = _to_unicode(local_directory_name)
     remote_directory = None
     for sub_folder in current_directory.sub_folders:
-        if sub_folder.name == local_directory_name:
+        if sub_folder.name == encoded_directory_name:
             remote_directory = sub_folder
             _load_files_if_necessary(client, remote_directory)
             break
     if remote_directory is None:
-        f = client.folders.create(os.path.basename(directory_path), current_directory.folder_id)
+        f = client.folders.create(local_directory_name, current_directory.folder_id)
         remote_directory = _Folder(f.id, current_directory, f.name)
         current_directory.sub_folders.append(remote_directory)
         remote_directory.files = []
@@ -243,10 +247,11 @@ def _upload_directory(client, directory_path, current_directory, keep_file):
         _upload_directory(client, sub_folder, remote_directory, keep_file)
 
 
-def _is_file_present(remote_directory, sub_entity):
+def _is_file_present(remote_directory, local_filename):
+    encoded_filename = _to_unicode(local_filename)
     already_exists = False
     for sub_file in remote_directory.files:
-        if sub_file.name == sub_entity:
+        if sub_file.name == encoded_filename:
             already_exists = True
             break
     return already_exists
@@ -277,6 +282,9 @@ def _download_directory(client, folder, destination_path):
 def _load_files_if_necessary(client, folder, force=False):
     if folder.files is None or force:
         folder.files = client.folders.get(folder.folder_id, showthumbnails=True).files
+
+def _to_unicode(name):
+    return unicode(name, "utf-8", errors="ignore")
 
 
 def _log_file_activity(file_path):
