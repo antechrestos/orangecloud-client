@@ -1,6 +1,6 @@
+import subprocess
 import sys
 import traceback
-import subprocess
 from argparse import ArgumentParser, Action
 
 from orangecloud_client.commands.shell.commands import cd, ls, mkdir, upload, rm, download, freespace, reload_cache, \
@@ -55,10 +55,10 @@ subparsers.add_parser('reload_cache', help='Reload local cache')
 subparsers.add_parser('exit', help='Exit shell')
 
 
-def launch_interactive_shell(client):
+def launch_interactive_shell(client, start_directory=None, single_command_words=None):
     global parser
-    ask_exit = False
     reload_cache(client)
+    ask_exit = False
     commands_mapping = dict(cd=(cd, False),
                             ls=(ls, True),
                             mkdir=(mkdir, True),
@@ -68,23 +68,19 @@ def launch_interactive_shell(client):
                             reload_cache=(reload_cache, True),
                             pwd=(pwd, False),
                             rm=(rm, True))
-    sys.stdout.write('''
-Welcome to the orangecloud shell. Type \'help\' to know all the available commands
-''')
 
-    while not ask_exit:
-        sys.stdout.write('%s >' % get_path())
+    def _execute(command_splitted):
         try:
-            line_words = parse_line(sys.stdin.readline())
-            if line_words[0].startswith('!'):
-                line_words[0] = line_words[0][1:]
-                subprocess.call(line_words)
+            if command_splitted[0].startswith('!'):
+                command_splitted[0] = command_splitted[0][1:]
+                subprocess.call(command_splitted)
             else:
-                namespace = parser.parse_args(line_words)
+                namespace = parser.parse_args(command_splitted)
                 action, arguments = namespace.action, {name: value for name, value in
-                                                       getattr(namespace, StorePositional.ORDER_ARGS_ATTRIBUTE_NAME, [])}
+                                                       getattr(namespace, StorePositional.ORDER_ARGS_ATTRIBUTE_NAME,
+                                                               [])}
                 if action == 'exit':
-                    break
+                    return True
                 elif action == 'help':
                     parser.print_help()
                 else:
@@ -101,3 +97,21 @@ Welcome to the orangecloud shell. Type \'help\' to know all the available comman
                 sys.stderr.write('%s\n' % ex.message)
             elif type(ex) != SystemExit:
                 traceback.print_exc()
+        return False
+
+    if single_command_words is not None:
+        if start_directory is None or cd(start_directory):
+            _execute(single_command_words)
+    else:
+        sys.stdout.write('''
+Welcome to the orangecloud shell. Type \'help\' to know all the available commands
+''')
+        if start_directory is not None:
+            cd(start_directory)
+        while not ask_exit:
+            sys.stdout.write('%s >' % get_path())
+            try:
+                line_words = parse_line(sys.stdin.readline())
+                ask_exit = _execute(line_words)
+            except InvalidSynthax, ex:
+                sys.stderr.write('%s\n' % ex.message)

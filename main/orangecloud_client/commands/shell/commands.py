@@ -42,8 +42,9 @@ def cd(path):
                 if not found:
                     path_walked.append(sub_path)
                     sys.stderr.write('cd: Folder not found: %s\n' % '/'.join(path_walked))
-                    return
+                    return False
         path_walked.append(sub_path)
+    return True
 
 
 def ls(client, name):
