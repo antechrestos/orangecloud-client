@@ -1,4 +1,5 @@
 import logging
+import time
 
 from requests.exceptions import ConnectionError
 
@@ -13,7 +14,9 @@ class JsonObject(dict):
 
 
 class AbstractDomain(object):
-    MAX_RETRY = 3
+    MAX_RETRY = 10
+
+    SLEEP_BEFORE_RETRY = 5
 
     def __init__(self, client, domain_name):
         self.client = client
@@ -55,7 +58,8 @@ class AbstractDomain(object):
                 if number_retry > AbstractDomain.MAX_RETRY:
                     raise
                 else:
-                    self._logger.warning('%s - retrying', str(ex))
+                    self._logger.warning('%s - retrying in %d sec', str(ex), AbstractDomain.SLEEP_BEFORE_RETRY)
+                    time.sleep(AbstractDomain.SLEEP_BEFORE_RETRY)
 
     def _check_response(self, response, uri):
         if response.status_code >= 300:
