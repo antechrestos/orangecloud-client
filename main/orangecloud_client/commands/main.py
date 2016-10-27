@@ -16,7 +16,7 @@ def main():
     program_arguments = sys.argv[1:]
     idx = 0
     while idx < len(program_arguments):
-        if program_arguments[idx] == '-debug':
+        if program_arguments[idx] == '-debug' or program_arguments[idx] == '-h' or program_arguments[idx] == '--help':
             idx += 1
         elif program_arguments[idx] == '-start_directory':
             idx += 2
