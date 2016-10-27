@@ -58,10 +58,7 @@ class ApiManager(CredentialManager):
         if response.status_code == httplib.UNAUTHORIZED:
             try:
                 json_data = response.json()
-                error = json_data.get('error')
-                # {"error":{"code":"PDK_RP_0004","label":"INVALID_TOKEN","details":"OIDC rejected the token"}}
-                return json_data.get('message', '') == 'Invalid credentials' \
-                       or error is not None and error.get('label') == 'INVALID_TOKEN'
+                return json_data.get('message', '') == 'Invalid credentials'
             except:
                 return False
         else:

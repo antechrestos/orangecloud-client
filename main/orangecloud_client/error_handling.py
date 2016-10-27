@@ -4,13 +4,11 @@ _logger = logging.getLogger(__name__)
 
 
 class ClientError(Exception):
-    pass
+    def __init__(self, response, msg):
+        super(ClientError, self).__init__(msg)
+        self.response = response
 
 
 def raise_response_error(response, domain, msg, *args):
     _logger.error('%s - error in response: \n%s', domain, response.text)
-    raise_error(domain, msg, *args)
-
-
-def raise_error(domain, msg, *args):
-    raise ClientError(('%s: %s' % (domain, msg)) % args)
+    raise ClientError(response, ('%s: %s' % (domain, msg)) % args)

@@ -1,11 +1,13 @@
+import httplib
+import json
 import os
 from mimetypes import guess_type
-import json
-import unicodedata
+
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from orangecloud_client import URL_UPLOAD, BASE_URI
 from orangecloud_client.abstract_domain import AbstractDomain
+from orangecloud_client.error_handling import ClientError
 
 
 class Files(AbstractDomain):
@@ -60,14 +62,39 @@ class Files(AbstractDomain):
         if folder_id is not None:
             description['folder'] = folder_id
 
-        with open(file_path, 'rb') as f:
-            uri = '/files/content'
-            m = MultipartEncoder(
-                fields=dict(description=json.dumps(dict(description)),
-                            file=(file_name_encoded, f, mime_type))
-            )
-            response = self._call(self.client.post, '%s%s%s' % (URL_UPLOAD, BASE_URI, uri),
-                                  data=m,
-                                  headers={'Content-Type': m.content_type})
-            self._debug('upload - %s - %s', file_name, response.text)
-            return AbstractDomain._read_response(response)
+        def send():
+            with open(file_path, 'rb') as f:
+                uri = '/files/content'
+                m = MultipartEncoder(
+                    fields=dict(description=json.dumps(dict(description)),
+                                file=(file_name_encoded, f, mime_type))
+                )
+                response = self._call(self.client.post, '%s%s%s' % (URL_UPLOAD, BASE_URI, uri),
+                                      data=m,
+                                      headers={'Content-Type': m.content_type})
+                self._debug('upload - %s - %s', file_name, response.text)
+                return AbstractDomain._read_response(response)
+
+        try:
+            return send()
+        except ClientError, ex:
+            if Files._is_token_expired_on_upload(ex.response):
+                self._debug('refreshing token')
+                self.client._refresh_token()
+                self._debug('resending')
+                send()
+            else:
+                raise
+
+    @staticmethod
+    def _is_token_expired_on_upload(response):
+        if response.status_code == httplib.UNAUTHORIZED:
+            try:
+                json_data = response.json()
+                error = json_data.get('error')
+                # {"error":{"code":"PDK_RP_0004","label":"INVALID_TOKEN","details":"OIDC rejected the token"}}
+                return error is not None and error.get('label') == 'INVALID_TOKEN'
+            except:
+                return False
+        else:
+            return False

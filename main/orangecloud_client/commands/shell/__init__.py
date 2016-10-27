@@ -69,7 +69,7 @@ def launch_interactive_shell(client, start_directory=None, single_command_words=
                             pwd=(pwd, False),
                             rm=(rm, True))
 
-    def _execute(command_splitted):
+    def _execute(from_command_line, command_splitted):
         try:
             if command_splitted[0].startswith('!'):
                 command_splitted[0] = command_splitted[0][1:]
@@ -97,11 +97,13 @@ def launch_interactive_shell(client, start_directory=None, single_command_words=
                 sys.stderr.write('%s\n' % ex.message)
             elif type(ex) != SystemExit:
                 traceback.print_exc()
+            elif from_command_line:
+                raise
         return False
 
     if single_command_words is not None:
         if start_directory is None or cd(start_directory):
-            _execute(single_command_words)
+            _execute(True, single_command_words)
     else:
         sys.stdout.write('''
 Welcome to the orangecloud shell. Type \'help\' to know all the available commands
@@ -112,6 +114,6 @@ Welcome to the orangecloud shell. Type \'help\' to know all the available comman
             sys.stdout.write('%s >' % get_path())
             try:
                 line_words = parse_line(sys.stdin.readline())
-                ask_exit = _execute(line_words)
+                ask_exit = _execute(False, line_words)
             except InvalidSynthax, ex:
                 sys.stderr.write('%s\n' % ex.message)

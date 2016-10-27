@@ -1,10 +1,7 @@
 import logging
-import time
-
-from requests.exceptions import ConnectionError
 
 from orangecloud_client import URL_API, BASE_URI
-from orangecloud_client.error_handling import raise_error, raise_response_error
+from orangecloud_client.error_handling import raise_response_error
 
 
 class JsonObject(dict):
@@ -14,17 +11,10 @@ class JsonObject(dict):
 
 
 class AbstractDomain(object):
-    MAX_RETRY = 10
-
-    SLEEP_BEFORE_RETRY = 5
-
     def __init__(self, client, domain_name):
         self.client = client
         self.domain_name = domain_name
         self._logger = logging.getLogger('orangecloud_client.%s' % domain_name)
-
-    def _raise_error(self, msg, *args):
-        raise_error(self.domain_name, msg, *args)
 
     def _raise_response_error(self, response, msg, *args):
         raise_response_error(response, self.domain_name, msg, *args)
@@ -48,22 +38,12 @@ class AbstractDomain(object):
         return self._call(self.client.delete, AbstractDomain._build_uri(uri))
 
     def _call(self, method, url, **kwargs):
-        number_retry = 0
-        while True:
-            try:
-                response = method(url, **kwargs)
-                return self._check_response(response, url)
-            except ConnectionError, ex:
-                number_retry += 1
-                if number_retry > AbstractDomain.MAX_RETRY:
-                    raise
-                else:
-                    self._logger.warning('%s - retrying in %d sec', str(ex), AbstractDomain.SLEEP_BEFORE_RETRY)
-                    time.sleep(AbstractDomain.SLEEP_BEFORE_RETRY)
+        response = method(url, **kwargs)
+        return self._check_response(response, url)
 
     def _check_response(self, response, uri):
         if response.status_code >= 300:
-            raise_response_error(response, self.domain_name, 'Invalid status code %d on %s', response.status_code, uri)
+            self._raise_response_error(response, 'Invalid status code %d on %s', response.status_code, uri)
         else:
             return response
 
