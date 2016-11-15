@@ -1,8 +1,11 @@
+import errno
 import httplib
 import json
 import os
 from mimetypes import guess_type
 
+from requests.exceptions import ConnectionError
+from requests.packages.urllib3.exceptions import ProtocolError
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from orangecloud_client import URL_UPLOAD, BASE_URI
@@ -11,6 +14,7 @@ from orangecloud_client.error_handling import ClientError
 
 
 class Files(AbstractDomain):
+
     def __init__(self, client):
         super(Files, self).__init__(client, 'files')
 
@@ -79,12 +83,24 @@ class Files(AbstractDomain):
             return send()
         except ClientError, ex:
             if Files._is_token_expired_on_upload(ex.response):
-                self._debug('refreshing token')
+                self._logger.info('upload  - token invalid - refreshing token')
                 self.client._refresh_token()
-                self._debug('resending')
                 send()
             else:
                 raise
+        except ConnectionError, conn:
+            if len(conn.args) == 1 and type(conn.args[0]) == ProtocolError :
+                protocol_error = conn.args[0]
+                if len(protocol_error.args) == 2:
+                    str_error, error = protocol_error.args
+                    if error.errno == errno.ECONNRESET:
+                        self._logger.info('upload  - connection reset - refreshing token')
+                        self.client._refresh_token()
+                        self._logger.info('upload  - resending the payload')
+                        return send()
+            raise
+        except BaseException, ex:
+            self._logger.error('upload - unmanaged exception - %s', type(ex))
 
     @staticmethod
     def _is_token_expired_on_upload(response):

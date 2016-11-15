@@ -230,20 +230,22 @@ def _upload_directory(client, directory_path, current_directory, keep_file):
         f = client.folders.create(local_directory_name, current_directory.folder_id)
         remote_directory = _Folder(f.id, current_directory, f.name)
         current_directory.sub_folders.append(remote_directory)
-        remote_directory.files = []
     sub_folders = []
+    new_files = False
     for sub_entity in sorted(os.listdir(directory_path)):
         full_path = os.path.join(directory_path, sub_entity)
         if os.path.isfile(full_path) and keep_file(sub_entity):
             _log_file_activity(full_path)
-            if _is_file_present(remote_directory, sub_entity):
+            if remote_directory.files is not None and _is_file_present(remote_directory, sub_entity):
                 print 'ALREADY EXISTS'
             else:
                 client.files.upload(full_path, remote_directory.folder_id)
                 print 'OK'
+                new_files = True
         elif os.path.isdir(full_path):
             sub_folders.append(full_path)
-    _load_files_if_necessary(client, remote_directory, True)
+    if new_files:
+        remote_directory.files = None
     for sub_folder in sub_folders:
         _upload_directory(client, sub_folder, remote_directory, keep_file)
 
