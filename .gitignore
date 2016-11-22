@@ -3,4 +3,6 @@ test/sandbox.py
 *.pyc
 build/
 dist/
+orangecloud_client.egg-info/
+
 
