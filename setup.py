@@ -29,7 +29,7 @@ setup(name=package_name,
       author_email='antechrestos@gmail.com',
       description='A client library for Orange cloud',
       long_description=open('README.rst').read(),
-      url='http://github.com/antechrestos/OAuth2Client',
+      url='http://github.com/antechrestos/orangecloud-client',
       classifiers=[
           "Programming Language :: Python",
           "Natural Language :: English",
