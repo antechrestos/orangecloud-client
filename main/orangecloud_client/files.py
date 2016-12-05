@@ -48,11 +48,21 @@ class Files(AbstractDomain):
         return AbstractDomain._read_response(response)
 
     def download(self, download_url, destination_path):
-        with open(destination_path, 'wb') as f:
-            self._debug('download - %s', os.path.basename(destination_path))
+        def receive(fs):
             response = self._call(self.client.get, download_url, stream=True)
             for chunk in response:
-                f.write(chunk)
+                fs.write(chunk)
+        with open(destination_path, 'wb') as f:
+            self._debug('download - %s', os.path.basename(destination_path))
+            try:
+                receive(f)
+            except ClientError, ex:
+                if Files._is_token_expired_on_upload(ex.response):
+                    self._logger.info('download  - token invalid - refreshing token')
+                    self.client._refresh_token()
+                    receive(f)
+                else:
+                    raise
 
     def upload(self, file_path, folder_id=None):
         mime_type, _ = guess_type(file_path)
