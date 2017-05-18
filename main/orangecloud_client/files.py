@@ -49,7 +49,7 @@ class Files(AbstractDomain):
 
     def download(self, download_url, destination_path):
         def receive(fs):
-            response = self._call(self.client.get, download_url, stream=True)
+            response = self._call(self.client.get, download_url, stream=True, verify=False)
             for chunk in response:
                 fs.write(chunk)
         with open(destination_path, 'wb') as f:
