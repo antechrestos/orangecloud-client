@@ -132,6 +132,7 @@ class FilesTest(unittest.TestCase):
         def fire_test(mock_open):
             self.files.download(url_download, 'somewhere.txt')
             self.client.get.assert_called_with(self.client.get.return_value.url,
+                                               verify=False,
                                                stream=True)
             self.assertEqual(''.join(mock_open.return_value.buffer), 'Some data downloaded')
 
